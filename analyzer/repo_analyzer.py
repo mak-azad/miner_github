@@ -5,6 +5,13 @@ import os
 import datetime
 import requests
 import logging
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+# Load the tokenizer and model only once
+tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
+model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
+
 
 root_dir = "miner_github/analyzer"
 published_commits_patterns1 = 0
@@ -18,6 +25,20 @@ logs_dir = os.path.join(root_dir, "logs")
 os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
 log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+
+
+def get_prediction(input_text):
+    # Tokenize the input text
+    inputs = tokenizer(input_text, return_tensors="pt")
+    with torch.no_grad():
+        logits = model(**inputs).logits
+    
+    predicted_class_id = logits.argmax().item()
+    predicted_label = model.config.id2label[predicted_class_id]
+
+    return predicted_label
 
 def get_public_ip():
     try:
@@ -74,8 +95,11 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
         if commit.hash in processed_commits:
             continue  # Skip already processed commits
         modified_files_count = len(commit.modified_files)
-        if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
-            commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
+        
+        if modified_files_count < 10 and get_prediction(commit.msg) == 'LABEL_1':
+            commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)
+        # if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
+        #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
         # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
         #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
     if commit_counter_patterns1 > published_commits_patterns1:
