@@ -7,7 +7,7 @@ model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finet
 
 def get_prediction(input_text):
     # Tokenize the input text
-    inputs = tokenizer(input_text, return_tensors="pt")
+    inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
 
     # Perform inference without computing gradients for efficiency
     with torch.no_grad():

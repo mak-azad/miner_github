@@ -8,6 +8,9 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+# Disable tokenizers parallelism
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # Load the tokenizer and model only once
 tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
 model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
@@ -31,7 +34,7 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctim
 
 def get_prediction(input_text):
     # Tokenize the input text
-    inputs = tokenizer(input_text, return_tensors="pt")
+    inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
     with torch.no_grad():
         logits = model(**inputs).logits
     
