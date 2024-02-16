@@ -38,7 +38,23 @@ parallel-ssh -i -h sshhosts 'sudo apt-get update && sudo apt-get install -y soft
 
 # Using parallel-ssh to install Python packages on all hosts
 echo "Installing Python packages (pydriller, pygit2, pandas) on all hosts..."
-parallel-ssh -i -h sshhosts 'pip3 install pydriller pygit2 pandas'
+parallel-ssh -i -h sshhosts -t 0 'pip3 install pydriller pygit2 pandas'
 
+
+echo "Installing ML related libs..."
+sleep 5
+echo "Installing pytorch.."
+parallel-ssh -i -h sshhosts -t 0 'pip3 install torch' # -t 0 for no time bound
+echo "torch installation complete, checking .."
+parallel-ssh -i -h sshhosts 'python3 -c "import torch; print(torch.__version__)"'
+echo "Installing transformers.."
+parallel-ssh -i -h sshhosts -t 0 'pip3 install transformers'
+sleep 5
+echo "Cloning repo to all nodes home directory"
+parallel-ssh -i -h sshhosts 'git clone https://github.com/mak-azad/miner_github.git'
+
+echo "Now test the model on all nodes.."
+sleep 5
+parallel-ssh -i -h sshhosts 'python3 miner_github/test_model.py'
 echo "Script execution completed."
 
