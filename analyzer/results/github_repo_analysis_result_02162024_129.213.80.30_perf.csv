@@ -1,0 +1,802 @@
+Project Name,Commit URL,Message
+cs344,https://github.com/udacity/cs344/commit/5c234c582c8d4e4ea4ae33b7b6c36a71fa41eb27,"""Update main.cpp
+
+Made timing output nicer."""
+cs344,https://github.com/udacity/cs344/commit/0b5383d57d6b0bd25b40f7f2ea2ddaa3bdc8b158,"""Update main.cu
+
+Made timing info output nicer."""
+Alenka,https://github.com/antonmks/Alenka/commit/04e72bb39197fd7f4efcfdd3feb62ed95d9d0695,"""Code & performance improvements"""
+Alenka,https://github.com/antonmks/Alenka/commit/0f002666d41a55a560cc41dc77e1424e7238bfa2,"""Performance improvements. Application uses less host memory.
+
+Signed-off-by: Anton K <antonmks@gmail.com>"""
+Alenka,https://github.com/antonmks/Alenka/commit/90bc37f2e343b57bb100b76cb246467e43c9b3b6,"""Improved the performance of join"""
+Alenka,https://github.com/antonmks/Alenka/commit/75814987ff22617b553308d5e5c63b86bf9a6cad,"""Modified the database structure for faster segment access"""
+Alenka,https://github.com/antonmks/Alenka/commit/4aa4f4c22c816c0da4f521efa055b04a5164b47e,"""Performance and bug fixes"""
+Alenka,https://github.com/antonmks/Alenka/commit/a69032a56a0000736749a606c7f0db8bd090ecae,"""Performance and bug fixes"""
+Alenka,https://github.com/antonmks/Alenka/commit/f7f4d7e5703ebea590a5184489340d4cc6e6ff1b,"""Performance & bug fixes"""
+Alenka,https://github.com/antonmks/Alenka/commit/1aecad9b6c452b022f83358480309cc3a2b5053e,"""Bug fixes + it should eat up less memory"""
+Alenka,https://github.com/antonmks/Alenka/commit/1257147a8dedabd4980ea56959ff3fbb0ab7d812,"""Q2 Performance improvements"""
+Alenka,https://github.com/antonmks/Alenka/commit/2d978800f6f65d0700d21bd1abf7b0cbaed824eb,"""Performance improvements"""
+Alenka,https://github.com/antonmks/Alenka/commit/ee5538a4db5aed3d41fd9c15ae779f1036a58629,"""Q2 performance improvements"""
+Alenka,https://github.com/antonmks/Alenka/commit/68da348a62dda80d592f31dfa01cecc4e6a76c0a,"""Commented out the function str_grp/T_str_grp that is not currently in use.
+To speed up the compilation, better to use a lot of translation units and to scatter functions across them. It also solve the problem of the big size of the object files."""
+Alenka,https://github.com/antonmks/Alenka/commit/3688dddb975f5298f4b716dc90832f860936923d,"""Better load performance"""
+Alenka,https://github.com/antonmks/Alenka/commit/154783cc23f979dcde7db50d834d771c0cb8ba3d,"""Fixed conversion between big endian and little endian.
+For speedup sort strings in 8 times for string length: 1/2/4/8 bytes.
+By using optimized radix sort for GPU."""
+Alenka,https://github.com/antonmks/Alenka/commit/27bedbfd8d9f1abb7d5f06a461dd301051c7c7a5,"""Speedup of sort strings in 2 - 3.5 times.
+For strings length is a multiple of two speedup in 2 - 2.5 times, for multiple of four in 3 - 3.5 times. (Speedup through accelerate of comparison of static strings.)"""
+Alenka,https://github.com/antonmks/Alenka/commit/8349120fe78c06288570dbd0ff84ba1941d8e82d,"""Better groupby performance with merge/reduce_by_key
+Removed Boost referencies"""
+Alenka,https://github.com/antonmks/Alenka/commit/cb5828d8fef27c397741c34195579922dd76a2d5,"""Switched to pinned memory. Slightly better performance."""
+Alenka,https://github.com/antonmks/Alenka/commit/210ac21b59268d69a0de49410576602351b376d5,"""Performance fix"""
+Alenka,https://github.com/antonmks/Alenka/commit/fd48d00d2c22ce4abd52ffea66935cb9b6939d9a,"""Preprocessing keys for reductions"""
+Alenka,https://github.com/antonmks/Alenka/commit/6ed43d9f5bd684479a320affd3caf72f488b73bd,"""Added -s option. Improved GROUP BY performance."""
+Alenka,https://github.com/antonmks/Alenka/commit/34501c8c4a783b529b9b142b72e2e7c20ddb7463,"""Exposed data.dict"""
+Alenka,https://github.com/antonmks/Alenka/commit/cb7f33569d7e6cfbb261c364a040118dfe375387,"""Performance improvements for groupby and load operations."""
+Alenka,https://github.com/antonmks/Alenka/commit/0246466faf2bca4b6a9aa7ec24728a2b3aa1851a,"""Can do groupby on decimal columns now"""
+Alenka,https://github.com/antonmks/Alenka/commit/5ba933cb2f25812911f91173aeb712ad44eda14d,"""Significant join performance improvements"""
+Alenka,https://github.com/antonmks/Alenka/commit/e59614af573f7e49d38b413e6da2edd0de9a45ed,"""Better performance for group operator"""
+Alenka,https://github.com/antonmks/Alenka/commit/e0d4da7cbc72b8fe8cc5e41010fc011f0f95b51d,"""Better load performance"""
+Alenka,https://github.com/antonmks/Alenka/commit/40299a5f041902c269e8f6622908ec93d61a85bc,"""Performance improvements for group operator
+
+tpc-h Q1 for SF=100 from 6.6 s. to 3.8 s."""
+Alenka,https://github.com/antonmks/Alenka/commit/6e2c914b765f3f38f96e8a812d101b960e33f4c2,"""Even better groupby performance"""
+Alenka,https://github.com/antonmks/Alenka/commit/06e3df255e4052f59c53237b9570b846f77a9ca5,"""Better multicolumn join performance
+
+With less memory, too !"""
+Alenka,https://github.com/antonmks/Alenka/commit/7d07a7fd78474b4103b6b30b3c2870a5a1398b92,"""Better join performance"""
+Alenka,https://github.com/antonmks/Alenka/commit/190c59bdc3d44c98b3af312488f9416b136d22d8,"""Better GroupBy performance"""
+Alenka,https://github.com/antonmks/Alenka/commit/afe6ebba004071c0cd0a1f967f106db4d746e590,"""Fixed some data load performance issues"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/548d70fcd1faf469d793596cc6a4053b21e40f6f,"""use malloc instead of new
+
+This is better for introducing cudaMalloc."""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/57a8f0388cedbaddc37e2d930e2b59e7454c99bc,"""safer input"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/2dbe9c4d8022c70a11a1191b2b5afbd4e427892c,"""no exercises"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/ccee30cdcd4dbfce110298c71ca1a18ea7113082,"""no exercises"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/86f7dfda2b9c9bcd36f92edac4bb34fe43d36fd6,"""add atomic version
+
+good performance!"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/f38a92558c4bf12384a778183224880b4ab23403,"""make find_force() 30% faster
+
+division => multiplication"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/cd40e9609435bd2ef8460fc03953ead5c2dc865e,"""cudaDeviceSynchronize();"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/95656f9c5a2889334d47e20f2415b3b3ef6e00df,"""reduce the neighbor list size
+
+only for solid argon"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/aba5f0d5de29b41dff53f019d894e7766e7147b6,"""double -> real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/d809cb08ee62aa45c024cdbf8d91459e5eade73d,"""atomic operations are really fast"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/f987d9367cdc76fe705891249049ef7680d63630,"""double -> real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/3f270cb6f2531715e4fe7cf2c32d593a6bf8e2d4,"""double to real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/a16f88a34fb92245bfbb8f1b59b6c5589579ac97,"""%g for timing results"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/8b470c0fbdf73c13cc3d692a0b2d477cf7c15f4e,"""pow to arithmetic"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/a000d3632ad020c6da02afb09d3380d04ac65861,"""double to real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/885c80879cca42b946d392fd4eafaab32aebbac2,"""very high arithmetic intensity"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/d36788721494f3bdc677f429cea17bd4a03aadf6,"""double to real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/f11d9660f4d438c1aba9dccbc98c7086af41289b,"""double to real"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/eb1811505cce2146c05cd6ad08d6465397dd829c,"""change the reduction part in MD"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/5b1096f4f8658edd30d6c3059a3791f5be56676b,"""use 32*32 block for transpose"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/610acb8da57fefd15d7026167b5a982cce0e693f,"""Create reduce4dynamic.cu
+
+dynamical shared memory"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/81e352a19d25449e8e4da761d5b2a3734ac85934,"""add back neighbor list example
+
+using atomic function is slower than not using it"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/e8e07b7fbe18506d758b49527aff2369c13151f4,"""faster"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/6da57862d395cc98b95d12a1f139656cfa64d2f4,"""test the cost of cudaMalloc() + cudaMemcpy()"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/da6fa80d209e02d55ac432dc0d76326f93ae5790,"""Delete arithmetic.cu"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/353327d572a63650f5dd7bd930b65d76dc4c2dd4,"""cudaDeviceSynchronize"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/795cf4411cc2f0151b87e72ad9ee79eea0979f53,"""combine two programs into one"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/aa908a4473df30ab0c34e0283222d52a2dedbd7e,"""simplify"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/8c813a06e8ea6d874b3a6148955ad2fde5e05962,"""more optimization"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/4be4af62e5730dd0ef727777dca3ecb4dda7be3d,"""optimize a little
+
+a && b
+when a is false, b will not be evaluated"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/8468cb25e12fd6d8545b81100b6cc1c93b469198,"""修改了第九章
+
+xy.txt：
+删除了原子数量与晶格常数，简化数据读取程序。原子数量可以通过有效数据行数获得，晶格常数在这个示例中是不必要的（刚开始我都没看出那是晶格常数）。
+points.m(绘制原子)：
+简化了读取数据的代码。
+points_and_bonds.m(绘制原子与键)：
+简化了读取数据的代码。修改了绘制键相关代码，极大地减少了绘制时间（这是使我修改这一章代码的最主要原因）。
+neighbor_gpu.cu：
+使用C++的容器vector，避免了预先设置原子数量这种操作。使用C++的文件流方式重写了读取坐标的函数read_xy。
+neighbor_cpu.cu：
+同样修改为C++的模式。
+neighbor.txt：
+使用NaN填充其余位置，使得matlab可以使用read函数方便读取数据。"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/86177677698ac2839cdf518e13d1f993d3877300,"""using pointers instead of vectors in find_neighbor
+
+pointer is still faster"""
+CUDA-Programming,https://github.com/brucefan1983/CUDA-Programming/commit/4ee1ace5b1563089d823c09a3a79ac3fbb6719bf,"""Synchronization is needed here"""
+k2,https://github.com/k2-fsa/k2/commit/1e6a789166c8b1ffdc991f03d5513f2a7c0fac02,"""implement IsDeterministic and IsEpsilonFree, write tests"""
+k2,https://github.com/k2-fsa/k2/commit/52d0b360fd33e78f8b6097995a9e45e848f030bb,"""implement IsRandEquivalent (#30)"""
+k2,https://github.com/k2-fsa/k2/commit/75a83c94195a00a89d1a62eaf543506da60936b5,"""implement RmEpsilonPruneMax (#40)
+
+* add derivs_out
+
+* implement with traceback-based algorithm
+
+* replace head with map in RmEpsilon"""
+k2,https://github.com/k2-fsa/k2/commit/7094857cc2963fd37823c0e1d49bf707e454fc7e,"""Implement RandEquivalent and ShorestDistance for weighted FSA (#44)"""
+k2,https://github.com/k2-fsa/k2/commit/f5d2f0023885131b1245245f379bc8eb61d27836,"""Implement RandomEquivalent for RmEpsilonPrunedLogSum (#48)"""
+k2,https://github.com/k2-fsa/k2/commit/630fa7e080ed93b638fc302db443874da47b571a,"""[WIP] CUDA error checking/debugging (#94)
+
+* [WIP] CUDA error checking/debugging
+
+add debug.cuh and related changes.
+
+* update #1 after review
+
+* update
+
+* update
+
+* trivials
+
+* replace get_filename_component, as it rises cmake version warning
+
+* add `K2_ASSERT, K2_CHECK_EQ, K2_PARANOID_ASSERT` 
+
+and update for last review; make some trival changes
+
+* typo
+
+* trivals
+
+* fix a error
+
+* typo
+
+* Update debug.h
+
+* make last change consist with its comment
+
+* update to review
+
+* update to review
+
+* update as Dan required
+
+- remove macro redefine guards
+- replace K2_MAKE_ERROR_CHECK with NDEBUG
+
+* changes make gtest stop warn about usage of *_DEATH
+
+* remove utility macro about archtecture  and the related file.
+
+* remove more complex less helpful cmake gtest module, and revert back
+
+* fix pointer pos style
+
+* continue to remove gtest util
+
+* rm special variadic printf for clang 
+
+as I tried with clang with cuda, and finally the previous error dismissed: 
+""function not viable: requires 2 arguments, but 4 were provided                            
+extern int vprintf (const char *__restrict __format, _G_va_list __arg);""
+
+* K2_CUDA_SAFE_CALL
+
+Never distinguish API or KERNEl call, instead merge into one: K2_CUDA_SAFE_CALL.
+
+* fix to review"""
+k2,https://github.com/k2-fsa/k2/commit/9cae43e5de8c7cecf2edb08ec3331dc81cfbc6c8,"""add cuda check (#105)
+
+* Cuda draft2 (#86)
+
+* Some code drafts
+
+* Updates to determinize draft..
+
+* Progress on draft of CUDA stuff (sorry: lots of inconsistencies still)
+
+* Rework context/memory management for easier integration with external toolkits
+
+* Updates to Context
+
+* Add ragged.h
+
+* Add shape.h
+
+* Various fixes, added compose.cc
+
+* implement GetContext with parameter pack (#73)
+
+* Various fixes etc.
+
+* Update license; various updates on cuda stuff
+
+* Add utils header
+
+* Update the build system to support Cuda. (#75)
+
+* update the build system to support cuda.
+
+* add a google colab example for Cuda test.
+
+* enable CI for the cuda_draft branch.
+
+* resolve some comments.
+
+* Updates to compose algo.
+
+* Fix couple build issues
+
+* move shape to ragged_shape
+
+* More progress...
+
+* More progress... won't compile
+
+* More progress on CUDA draft (wont compile, sorry)
+
+* Working on composition...
+
+* matrix transpose in cuda (simple version) (#84)
+
+* more progress...
+
+* add performace test functions (#85)
+
+* various progress...
+
+* fix build issues (#87)
+
+Co-authored-by: Haowen Qiu <qindazhu@gmail.com>
+Co-authored-by: Fangjun Kuang <csukuangfj@gmail.com>
+
+* cmake: set ""Debug"" as default, and add ""-O0"" for debugging (#83)
+
+* cmake: set ""Debug"" as default, and add ""-O0"" for debugging
+
+* make cmakelists.txt more pratical
+
+* change style of cmake custom variables
+
+* [WIP] CUDA error checking/debugging (#94)
+
+* [WIP] CUDA error checking/debugging
+
+add debug.cuh and related changes.
+
+* update #1 after review
+
+* update
+
+* update
+
+* trivials
+
+* replace get_filename_component, as it rises cmake version warning
+
+* add `K2_ASSERT, K2_CHECK_EQ, K2_PARANOID_ASSERT` 
+
+and update for last review; make some trival changes
+
+* typo
+
+* trivals
+
+* fix a error
+
+* typo
+
+* Update debug.h
+
+* make last change consist with its comment
+
+* update to review
+
+* update to review
+
+* update as Dan required
+
+- remove macro redefine guards
+- replace K2_MAKE_ERROR_CHECK with NDEBUG
+
+* changes make gtest stop warn about usage of *_DEATH
+
+* remove utility macro about archtecture  and the related file.
+
+* remove more complex less helpful cmake gtest module, and revert back
+
+* fix pointer pos style
+
+* continue to remove gtest util
+
+* rm special variadic printf for clang 
+
+as I tried with clang with cuda, and finally the previous error dismissed: 
+""function not viable: requires 2 arguments, but 4 were provided                            
+extern int vprintf (const char *__restrict __format, _G_va_list __arg);""
+
+* K2_CUDA_SAFE_CALL
+
+Never distinguish API or KERNEl call, instead merge into one: K2_CUDA_SAFE_CALL.
+
+* fix to review
+
+* update to review
+
+- fix a twice error code checking issue
+- change macro name `K2_CUDA_CHECK_ERROR` to `K2_CUDA_PRINT_ERROR` as its effect
+- add a optional arg `abort` to control abort if hit error
+- trivals
+fix
+
+* just revert name: `K2_CUDA_CHECK_ERROR`
+
+* update to review (#103)
+
+* update to review
+
+- fix a twice error code checking issue
+- change macro name `K2_CUDA_CHECK_ERROR` to `K2_CUDA_PRINT_ERROR` as its effect
+- add a optional arg `abort` to control abort if hit error
+- trivals
+fix
+
+* just revert name: `K2_CUDA_CHECK_ERROR`
+
+* rm two files that @Dan deleted on master
+
+Co-authored-by: Daniel Povey <dpovey@gmail.com>
+Co-authored-by: Haowen Qiu <qindazhu@gmail.com>
+Co-authored-by: Fangjun Kuang <csukuangfj@gmail.com>"""
+k2,https://github.com/k2-fsa/k2/commit/00b576572b0dfa1c41b8537d45ef2ffed6a29d1e,"""Declare a function related to sparse matrix transposition (#233)"""
+k2,https://github.com/k2-fsa/k2/commit/8a32c4c09ece704d0ef12bf220953e2d6c1e8627,"""implement GetTransposeReordering. (#237)
+
+* implement GetTransposeReordering.
+
+* remove block comments.
+
+* switch to sorting based transpose.
+
+* remove cub warnings.
+
+* add GPU version.
+
+* fix style issues.
+
+* remove duplicate code.
+
+* resolve some comments.
+
+* optimize the CPU version."""
+k2,https://github.com/k2-fsa/k2/commit/b80dd59f318eca00b2a5605da80cdaa2f635f2d8,"""Make indexing of ragged tensors more efficient (#263)
+
+* Add shim for FsaVec -> host FSA
+
+* Finish wrapping of Intersect() from host code.  Not tested!
+
+* Make ragged tensor indexing more efficient"""
+k2,https://github.com/k2-fsa/k2/commit/dfbf1c1f51893500e76ed2890357a577cc113fca,"""Further efficiency improvement for ragged  tensor indexing (#264)"""
+k2,https://github.com/k2-fsa/k2/commit/9e89e8744b9711b7f6aef8f9891dd90d38802496,"""Fix segfaults in __host__ __device__ lambdas. (#361)
+
+* Change order of imports, stop: ImportError: libc10.so: ...
+
+* Temporary changes, some for debug
+
+* Array.h optimization
+
+* Trivial change..
+
+* Get tests working in release mode
+
+* Reverting unnecessary changes in CMakeLists.txt and simplifying
+
+* Got it working in release mode."""
+k2,https://github.com/k2-fsa/k2/commit/d8736d4ac314b0fc1d3a500999e7837a729732b8,"""Implement extra indexing operations (+declare some tensor ones not implemented yet) (#383)"""
+k2,https://github.com/k2-fsa/k2/commit/adc9e37fe2f0be3883929db13c54fdf3059e975a,"""Add bunch of NVTX_RANGE() code; more efficient parallel unsqueeze. (#386)
+
+* Add some NVTX_RANGE statements
+
+* Add more debugging code
+
+* Add more NVTX_RANGE things
+
+* Efficiency improvement when unsqueezing multiple arrays; add more debug code."""
+k2,https://github.com/k2-fsa/k2/commit/0eb06f0dcc2c7fd1c307ee68119c05d3af8b5372,"""implement InvertMonotonicDecreasing and MonotonicDecreasingUpperBound (#415)"""
+k2,https://github.com/k2-fsa/k2/commit/d376902aa15f0835030d9cc4662e4a6840bf1b35,"""Fix segfault in release build with GCC 5. (#419)
+
+* Use GCC 6 and GCC 7 in GitHub actions to prevent segfault.
+
+GCC 5 will cause segfault in Release build.
+
+* Switch to GCC 5.
+
+Disable inline optimization of `CudaStreamOverride`.
+
+* Move Push and Pop of CudaStreamOverride to context.cu
+
+It prevents the compiler from inlining them."""
+k2,https://github.com/k2-fsa/k2/commit/575d6576e22f77f7495a2eec22bda404460253ce,"""Note for epsilon removal on GPU (#447)"""
+k2,https://github.com/k2-fsa/k2/commit/9e776635c1d7af0e6da113abf1ea2e9877ba3a8d,"""implemented ComputeEpsilonClosureOneIter (#471)"""
+k2,https://github.com/k2-fsa/k2/commit/e6c081ab5a5c7cdeb01fa00e26875ebf5d41523b,"""Implemented ComputeEpsilonClosure (#482)"""
+k2,https://github.com/k2-fsa/k2/commit/1d328494367efd3f8341f6f300d66c799ef1894c,"""Implement some indexing-with-ragged operations (#486)"""
+k2,https://github.com/k2-fsa/k2/commit/d8455948860ea0c95570c512d9b50a4ef6c912d8,"""Add justification for epsilon-removal algorithm correctness (#526)"""
+k2,https://github.com/k2-fsa/k2/commit/436da183c5184c7a8346693a4e7706270325e620,"""implement GPU invert with ExpandArcs (#545)"""
+k2,https://github.com/k2-fsa/k2/commit/d5ce23c44daf814eff40f2a1c28ab210f4c2bee3,"""rename index_attr to index and dispatch index operation to the right one (#551)"""
+k2,https://github.com/k2-fsa/k2/commit/72623d7ed267387b8d7018312285272ea7cee302,"""optimize Arange code to use only one GPU to CPU memory transfer and wrap to python (#552)"""
+k2,https://github.com/k2-fsa/k2/commit/dd8051deb7bd1fa1f41d0f1dcd7d6f008599145d,"""Arc scores refactor (#3)
+
+* Some refactoring
+
+* Add utility to split ragged shape efficiently.
+
+* Refactoring forward computation
+
+* Refactor the backward propagation to be simpler."""
+k2,https://github.com/k2-fsa/k2/commit/90ddadc53bf822421254feb41548a5161f40b456,"""Cosmetic change, ApplyOpPerSublist->SegmentedReduce"""
+k2,https://github.com/k2-fsa/k2/commit/7a23f7b2a37b129978bc22f568be96933fd32804,"""Implemented SegmentedExclusiveSum without cudpp, be more faster (#621)"""
+k2,https://github.com/k2-fsa/k2/commit/f61f64e43ce20b15cce8e48dd9e313f4614f006a,"""Optimize op Append for Array1 with load balance search (#624)"""
+k2,https://github.com/k2-fsa/k2/commit/bdec8364709d678b9cb8a3e418edf5e3e9f0adb3,"""Optimize op SpliceRowSplits with load balance search (#625)"""
+k2,https://github.com/k2-fsa/k2/commit/0feefc731f65c104f0849e7d4b747aac83c3217a,"""Modified rnnt (#902)
+
+* Add modified mutual_information_recursion
+
+* Add modified rnnt loss
+
+* Using more efficient way to fix boundaries
+
+* Fix modified pruned rnnt loss
+
+* Fix the s_begin constrains of pruned loss for modified version transducer"""
+k2,https://github.com/k2-fsa/k2/commit/63240103fc561ff12c87a0a01057cfe9caaa2643,"""optimize shortestpath (#1039)"""
+k2,https://github.com/k2-fsa/k2/commit/f1ae355b619db05cda7bd4305628df4ab4c900e1,"""Replace monotonic_lower_bound with efficient implementation (#1079)
+
+* Replace monotonic_lower_bound with efficient implementation
+
+* Fix style"""
+k2,https://github.com/k2-fsa/k2/commit/1ff2557b070e659347df08457d6bd07186a493c1,"""e / (1.0f + e) -> 1.0f - 1.0f / (1.0f + e)"""
+k2,https://github.com/k2-fsa/k2/commit/1e6a789166c8b1ffdc991f03d5513f2a7c0fac02,"""implement IsDeterministic and IsEpsilonFree, write tests"""
+k2,https://github.com/k2-fsa/k2/commit/52d0b360fd33e78f8b6097995a9e45e848f030bb,"""implement IsRandEquivalent (#30)"""
+k2,https://github.com/k2-fsa/k2/commit/75a83c94195a00a89d1a62eaf543506da60936b5,"""implement RmEpsilonPruneMax (#40)
+
+* add derivs_out
+
+* implement with traceback-based algorithm
+
+* replace head with map in RmEpsilon"""
+k2,https://github.com/k2-fsa/k2/commit/7094857cc2963fd37823c0e1d49bf707e454fc7e,"""Implement RandEquivalent and ShorestDistance for weighted FSA (#44)"""
+k2,https://github.com/k2-fsa/k2/commit/f5d2f0023885131b1245245f379bc8eb61d27836,"""Implement RandomEquivalent for RmEpsilonPrunedLogSum (#48)"""
+k2,https://github.com/k2-fsa/k2/commit/630fa7e080ed93b638fc302db443874da47b571a,"""[WIP] CUDA error checking/debugging (#94)
+
+* [WIP] CUDA error checking/debugging
+
+add debug.cuh and related changes.
+
+* update #1 after review
+
+* update
+
+* update
+
+* trivials
+
+* replace get_filename_component, as it rises cmake version warning
+
+* add `K2_ASSERT, K2_CHECK_EQ, K2_PARANOID_ASSERT` 
+
+and update for last review; make some trival changes
+
+* typo
+
+* trivals
+
+* fix a error
+
+* typo
+
+* Update debug.h
+
+* make last change consist with its comment
+
+* update to review
+
+* update to review
+
+* update as Dan required
+
+- remove macro redefine guards
+- replace K2_MAKE_ERROR_CHECK with NDEBUG
+
+* changes make gtest stop warn about usage of *_DEATH
+
+* remove utility macro about archtecture  and the related file.
+
+* remove more complex less helpful cmake gtest module, and revert back
+
+* fix pointer pos style
+
+* continue to remove gtest util
+
+* rm special variadic printf for clang 
+
+as I tried with clang with cuda, and finally the previous error dismissed: 
+""function not viable: requires 2 arguments, but 4 were provided                            
+extern int vprintf (const char *__restrict __format, _G_va_list __arg);""
+
+* K2_CUDA_SAFE_CALL
+
+Never distinguish API or KERNEl call, instead merge into one: K2_CUDA_SAFE_CALL.
+
+* fix to review"""
+k2,https://github.com/k2-fsa/k2/commit/9cae43e5de8c7cecf2edb08ec3331dc81cfbc6c8,"""add cuda check (#105)
+
+* Cuda draft2 (#86)
+
+* Some code drafts
+
+* Updates to determinize draft..
+
+* Progress on draft of CUDA stuff (sorry: lots of inconsistencies still)
+
+* Rework context/memory management for easier integration with external toolkits
+
+* Updates to Context
+
+* Add ragged.h
+
+* Add shape.h
+
+* Various fixes, added compose.cc
+
+* implement GetContext with parameter pack (#73)
+
+* Various fixes etc.
+
+* Update license; various updates on cuda stuff
+
+* Add utils header
+
+* Update the build system to support Cuda. (#75)
+
+* update the build system to support cuda.
+
+* add a google colab example for Cuda test.
+
+* enable CI for the cuda_draft branch.
+
+* resolve some comments.
+
+* Updates to compose algo.
+
+* Fix couple build issues
+
+* move shape to ragged_shape
+
+* More progress...
+
+* More progress... won't compile
+
+* More progress on CUDA draft (wont compile, sorry)
+
+* Working on composition...
+
+* matrix transpose in cuda (simple version) (#84)
+
+* more progress...
+
+* add performace test functions (#85)
+
+* various progress...
+
+* fix build issues (#87)
+
+Co-authored-by: Haowen Qiu <qindazhu@gmail.com>
+Co-authored-by: Fangjun Kuang <csukuangfj@gmail.com>
+
+* cmake: set ""Debug"" as default, and add ""-O0"" for debugging (#83)
+
+* cmake: set ""Debug"" as default, and add ""-O0"" for debugging
+
+* make cmakelists.txt more pratical
+
+* change style of cmake custom variables
+
+* [WIP] CUDA error checking/debugging (#94)
+
+* [WIP] CUDA error checking/debugging
+
+add debug.cuh and related changes.
+
+* update #1 after review
+
+* update
+
+* update
+
+* trivials
+
+* replace get_filename_component, as it rises cmake version warning
+
+* add `K2_ASSERT, K2_CHECK_EQ, K2_PARANOID_ASSERT` 
+
+and update for last review; make some trival changes
+
+* typo
+
+* trivals
+
+* fix a error
+
+* typo
+
+* Update debug.h
+
+* make last change consist with its comment
+
+* update to review
+
+* update to review
+
+* update as Dan required
+
+- remove macro redefine guards
+- replace K2_MAKE_ERROR_CHECK with NDEBUG
+
+* changes make gtest stop warn about usage of *_DEATH
+
+* remove utility macro about archtecture  and the related file.
+
+* remove more complex less helpful cmake gtest module, and revert back
+
+* fix pointer pos style
+
+* continue to remove gtest util
+
+* rm special variadic printf for clang 
+
+as I tried with clang with cuda, and finally the previous error dismissed: 
+""function not viable: requires 2 arguments, but 4 were provided                            
+extern int vprintf (const char *__restrict __format, _G_va_list __arg);""
+
+* K2_CUDA_SAFE_CALL
+
+Never distinguish API or KERNEl call, instead merge into one: K2_CUDA_SAFE_CALL.
+
+* fix to review
+
+* update to review
+
+- fix a twice error code checking issue
+- change macro name `K2_CUDA_CHECK_ERROR` to `K2_CUDA_PRINT_ERROR` as its effect
+- add a optional arg `abort` to control abort if hit error
+- trivals
+fix
+
+* just revert name: `K2_CUDA_CHECK_ERROR`
+
+* update to review (#103)
+
+* update to review
+
+- fix a twice error code checking issue
+- change macro name `K2_CUDA_CHECK_ERROR` to `K2_CUDA_PRINT_ERROR` as its effect
+- add a optional arg `abort` to control abort if hit error
+- trivals
+fix
+
+* just revert name: `K2_CUDA_CHECK_ERROR`
+
+* rm two files that @Dan deleted on master
+
+Co-authored-by: Daniel Povey <dpovey@gmail.com>
+Co-authored-by: Haowen Qiu <qindazhu@gmail.com>
+Co-authored-by: Fangjun Kuang <csukuangfj@gmail.com>"""
+k2,https://github.com/k2-fsa/k2/commit/00b576572b0dfa1c41b8537d45ef2ffed6a29d1e,"""Declare a function related to sparse matrix transposition (#233)"""
+k2,https://github.com/k2-fsa/k2/commit/8a32c4c09ece704d0ef12bf220953e2d6c1e8627,"""implement GetTransposeReordering. (#237)
+
+* implement GetTransposeReordering.
+
+* remove block comments.
+
+* switch to sorting based transpose.
+
+* remove cub warnings.
+
+* add GPU version.
+
+* fix style issues.
+
+* remove duplicate code.
+
+* resolve some comments.
+
+* optimize the CPU version."""
+k2,https://github.com/k2-fsa/k2/commit/b80dd59f318eca00b2a5605da80cdaa2f635f2d8,"""Make indexing of ragged tensors more efficient (#263)
+
+* Add shim for FsaVec -> host FSA
+
+* Finish wrapping of Intersect() from host code.  Not tested!
+
+* Make ragged tensor indexing more efficient"""
+k2,https://github.com/k2-fsa/k2/commit/dfbf1c1f51893500e76ed2890357a577cc113fca,"""Further efficiency improvement for ragged  tensor indexing (#264)"""
+k2,https://github.com/k2-fsa/k2/commit/9e89e8744b9711b7f6aef8f9891dd90d38802496,"""Fix segfaults in __host__ __device__ lambdas. (#361)
+
+* Change order of imports, stop: ImportError: libc10.so: ...
+
+* Temporary changes, some for debug
+
+* Array.h optimization
+
+* Trivial change..
+
+* Get tests working in release mode
+
+* Reverting unnecessary changes in CMakeLists.txt and simplifying
+
+* Got it working in release mode."""
+k2,https://github.com/k2-fsa/k2/commit/d8736d4ac314b0fc1d3a500999e7837a729732b8,"""Implement extra indexing operations (+declare some tensor ones not implemented yet) (#383)"""
+k2,https://github.com/k2-fsa/k2/commit/adc9e37fe2f0be3883929db13c54fdf3059e975a,"""Add bunch of NVTX_RANGE() code; more efficient parallel unsqueeze. (#386)
+
+* Add some NVTX_RANGE statements
+
+* Add more debugging code
+
+* Add more NVTX_RANGE things
+
+* Efficiency improvement when unsqueezing multiple arrays; add more debug code."""
+k2,https://github.com/k2-fsa/k2/commit/0eb06f0dcc2c7fd1c307ee68119c05d3af8b5372,"""implement InvertMonotonicDecreasing and MonotonicDecreasingUpperBound (#415)"""
+k2,https://github.com/k2-fsa/k2/commit/d376902aa15f0835030d9cc4662e4a6840bf1b35,"""Fix segfault in release build with GCC 5. (#419)
+
+* Use GCC 6 and GCC 7 in GitHub actions to prevent segfault.
+
+GCC 5 will cause segfault in Release build.
+
+* Switch to GCC 5.
+
+Disable inline optimization of `CudaStreamOverride`.
+
+* Move Push and Pop of CudaStreamOverride to context.cu
+
+It prevents the compiler from inlining them."""
+k2,https://github.com/k2-fsa/k2/commit/575d6576e22f77f7495a2eec22bda404460253ce,"""Note for epsilon removal on GPU (#447)"""
+k2,https://github.com/k2-fsa/k2/commit/9e776635c1d7af0e6da113abf1ea2e9877ba3a8d,"""implemented ComputeEpsilonClosureOneIter (#471)"""
+k2,https://github.com/k2-fsa/k2/commit/e6c081ab5a5c7cdeb01fa00e26875ebf5d41523b,"""Implemented ComputeEpsilonClosure (#482)"""
+k2,https://github.com/k2-fsa/k2/commit/1d328494367efd3f8341f6f300d66c799ef1894c,"""Implement some indexing-with-ragged operations (#486)"""
+k2,https://github.com/k2-fsa/k2/commit/d8455948860ea0c95570c512d9b50a4ef6c912d8,"""Add justification for epsilon-removal algorithm correctness (#526)"""
+k2,https://github.com/k2-fsa/k2/commit/436da183c5184c7a8346693a4e7706270325e620,"""implement GPU invert with ExpandArcs (#545)"""
+k2,https://github.com/k2-fsa/k2/commit/d5ce23c44daf814eff40f2a1c28ab210f4c2bee3,"""rename index_attr to index and dispatch index operation to the right one (#551)"""
+k2,https://github.com/k2-fsa/k2/commit/72623d7ed267387b8d7018312285272ea7cee302,"""optimize Arange code to use only one GPU to CPU memory transfer and wrap to python (#552)"""
+k2,https://github.com/k2-fsa/k2/commit/dd8051deb7bd1fa1f41d0f1dcd7d6f008599145d,"""Arc scores refactor (#3)
+
+* Some refactoring
+
+* Add utility to split ragged shape efficiently.
+
+* Refactoring forward computation
+
+* Refactor the backward propagation to be simpler."""
+k2,https://github.com/k2-fsa/k2/commit/90ddadc53bf822421254feb41548a5161f40b456,"""Cosmetic change, ApplyOpPerSublist->SegmentedReduce"""
+k2,https://github.com/k2-fsa/k2/commit/7a23f7b2a37b129978bc22f568be96933fd32804,"""Implemented SegmentedExclusiveSum without cudpp, be more faster (#621)"""
+k2,https://github.com/k2-fsa/k2/commit/f61f64e43ce20b15cce8e48dd9e313f4614f006a,"""Optimize op Append for Array1 with load balance search (#624)"""
+k2,https://github.com/k2-fsa/k2/commit/bdec8364709d678b9cb8a3e418edf5e3e9f0adb3,"""Optimize op SpliceRowSplits with load balance search (#625)"""
+k2,https://github.com/k2-fsa/k2/commit/0feefc731f65c104f0849e7d4b747aac83c3217a,"""Modified rnnt (#902)
+
+* Add modified mutual_information_recursion
+
+* Add modified rnnt loss
+
+* Using more efficient way to fix boundaries
+
+* Fix modified pruned rnnt loss
+
+* Fix the s_begin constrains of pruned loss for modified version transducer"""
+k2,https://github.com/k2-fsa/k2/commit/63240103fc561ff12c87a0a01057cfe9caaa2643,"""optimize shortestpath (#1039)"""
+k2,https://github.com/k2-fsa/k2/commit/f1ae355b619db05cda7bd4305628df4ab4c900e1,"""Replace monotonic_lower_bound with efficient implementation (#1079)
+
+* Replace monotonic_lower_bound with efficient implementation
+
+* Fix style"""
+k2,https://github.com/k2-fsa/k2/commit/1ff2557b070e659347df08457d6bd07186a493c1,"""e / (1.0f + e) -> 1.0f - 1.0f / (1.0f + e)"""
+blocksparse,https://github.com/openai/blocksparse/commit/11182e0e49916dc3b10bbe2c43aa49bae44645dd,"""changed memory format between qk product and softmax to be bfloat16 to accomidate higher dynamic range than in fp16
+big speedup in softmax for blocksize=64 for use in dense attention models"""
+CUDALibrarySamples,https://github.com/NVIDIA/CUDALibrarySamples/commit/e0875768d3d914baa3b51c9d32c55ca8b3426659,"""scalar of cuDoubleComplex should be double"""
+CUDALibrarySamples,https://github.com/NVIDIA/CUDALibrarySamples/commit/631d3277059aa975894e5add619ee7c7f53c9808,"""Converting milliseconds to seconds for display"""
+CUDALibrarySamples,https://github.com/NVIDIA/CUDALibrarySamples/commit/16e4f76d640cec92da9063a0a8232bf5427a8417,"""Displaying time unit in benchmarks"""
