@@ -1,0 +1,11 @@
+Serial No,Name,Description,Stars,Forks,Last Commit,Repository URL
+11,matconvnet,MatConvNet: CNNs for MATLAB,1376,761,2021-12-21T11:28:11Z,https://github.com/vlfeat/matconvnet
+12,Deformable-Convolution-V2-PyTorch,Deformable ConvNets V2 (DCNv2) in PyTorch,1349,225,2022-11-18T21:39:26Z,https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch
+13,cs344,Introduction to Parallel Programming class code,1227,1124,2022-06-27T11:56:37Z,https://github.com/udacity/cs344
+14,Alenka,GPU database engine,1165,126,2017-01-30T18:30:28Z,https://github.com/antonmks/Alenka
+15,CUDA-Programming,Sample codes for my CUDA programming book,1121,267,2023-07-27T12:20:22Z,https://github.com/brucefan1983/CUDA-Programming
+16,k2,"FSA/FST algorithms, differentiable, with PyTorch compatibility.",970,242,2023-11-01T08:30:54Z,https://github.com/k2-fsa/k2
+17,blocksparse,Efficient GPU kernels for block-sparse matrix multiplication and convolution,967,196,2023-06-08T11:01:25Z,https://github.com/openai/blocksparse
+18,CUDALibrarySamples,CUDA Library Samples,947,249,2023-11-07T20:41:42Z,https://github.com/NVIDIA/CUDALibrarySamples
+19,torchsparse,TorchSparse: Efficient Training and Inference Framework for Sparse Convolution on GPUs.,922,111,2023-11-07T15:06:41Z,https://github.com/mit-han-lab/torchsparse
+20,CudaSift,A CUDA implementation of SIFT for NVidia GPUs (1.2 ms on a GTX 1060),782,275,2023-09-12T18:52:16Z,https://github.com/Celebrandil/CudaSift
