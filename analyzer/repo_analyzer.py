@@ -127,8 +127,11 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
         #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
         # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
         #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
+        if commit_counter_patterns1 > 3000:
+            break
     if commit_counter_patterns1 > published_commits_patterns1:
         write_commit_analysis_to_csv(output_csv_file_pattern1, commit_data_patterns1)
+
     # if commit_counter_patterns2 > published_commits_patterns2:
     #     write_commit_analysis_to_csv(output_csv_file_pattern2, commit_data_patterns2)
     logging.info(f"Completed analysis for {repo_url}. Commits found: Pattern1={commit_counter_patterns1}")
