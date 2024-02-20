@@ -15,7 +15,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 
-
+# root for the script
 root_dir = "miner_github/analyzer"
 published_commits_patterns1 = 0
 published_commits_patterns2 = 0
@@ -24,15 +24,17 @@ commit_counter_patterns2 = 0
 buffer_size = 100  # Set the number of commits after which the result file will be pushed to GitHub
 
 # Logging configuration
-logs_dir = os.path.join(root_dir, "logs")
+logs_dir = os.path.join(root_dir, "logs") #log directory
 os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
 log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-
-
+# use the loaded model to predict classificaiton
 def get_prediction(input_text):
+    """
+    Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
+    """
     # Tokenize the input text
     inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
     with torch.no_grad():
@@ -40,9 +42,10 @@ def get_prediction(input_text):
     
     predicted_class_id = logits.argmax().item()
     predicted_label = model.config.id2label[predicted_class_id]
-
     return predicted_label
 
+
+# function to get IP for the current host this script
 def get_public_ip():
     try:
         response = requests.get('https://api.ipify.org')
@@ -65,13 +68,18 @@ def read_repository_urls_from_csv(input_csv_file):
         repo_urls = [row[6] for row in reader]
     return repo_urls
 
+# dummy test function
 def search_patterns_in_commit_message(message):
     if 'perf' in message:
         return True
     return False
 
 def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size, output_csv_file, commit_counter, published_commits):
-    logging.info(f"Pattern found in commit {commit.hash}: {commit.msg}")
+    """
+    Input: takes an 'commit' object and process it
+    """
+    logging.info(f"Processing commit: {commit.hash}: {commit.msg}")
+    # get the commmit url
     commit_url = f"{repo_url}/commit/{commit.hash}"
     modified_file = commit.modified_files[0]
     if modified_file.change_type != "ADD" and modified_file.change_type != "DELETE":
@@ -83,7 +91,12 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
             changed_method_name = modified_file.changed_methods[0].name or "NA"
             loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
         # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
-        commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
+            
+        #to get only commit messages uncomment 
+        commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"'])
+
+        #to get all uncomment
+        #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
         processed_commits.add(commit.hash)
         commit_counter += 1
     
@@ -124,7 +137,12 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
     with open(output_csv_file, 'a', newline='') as output_file:
         writer = csv.writer(output_file)
         if output_file.tell() == 0:
-            writer.writerow(["Project Name", "Commit URL", "Message", "src_before", "src", "changed_method_name", "loc"])
+            # write all
+            #writer.writerow(["Project Name", "Commit URL", "Message", "src_before", "src", "changed_method_name", "loc"])
+
+            # write commit message only
+            writer.writerow(["Project Name", "Commit URL", "Message"])
+
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
 
