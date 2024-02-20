@@ -1,21 +1,2 @@
 Serial No,Name,Description,Stars,Forks,Last Commit,Repository URL
-1,instant-ngp,Instant neural graphics primitives: lightning fast NeRF and more,14320,1785,2023-10-06T12:24:57Z,https://github.com/NVlabs/instant-ngp
-2,deep-painterly-harmonization,"Code and data for paper ""Deep Painterly Harmonization"": https://arxiv.org/abs/1804.03189",6103,638,2021-08-02T02:46:03Z,https://github.com/luanfujun/deep-painterly-harmonization
-3,deep-high-resolution-net.pytorch,"The project is an official implementation of our CVPR2019 paper ""Deep High-Resolution Representation Learning for Human Pose Estimation""",4133,906,2022-12-14T04:14:56Z,https://github.com/leoxiaobin/deep-high-resolution-net.pytorch
-4,warp-ctc,Fast parallel CTC.,4052,1052,2023-01-05T14:28:28Z,https://github.com/baidu-research/warp-ctc
-5,SENet,Squeeze-and-Excitation Networks,3220,830,2019-02-25T08:41:20Z,https://github.com/hujie-frank/SENet
-6,tsne-cuda,GPU Accelerated t-SNE for CUDA with Python bindings,1630,120,2023-09-13T20:22:05Z,https://github.com/CannyLab/tsne-cuda
-7,cub,[ARCHIVED] Cooperative primitives for CUDA C++. See https://github.com/NVIDIA/cccl ,1597,487,2023-10-09T17:44:21Z,https://github.com/NVIDIA/cub
-8,FCIS,Fully Convolutional Instance-aware Semantic Segmentation,1567,421,2021-09-27T02:16:42Z,https://github.com/msracver/FCIS
-9,CUDA_Freshman,,1441,340,2023-10-28T04:22:31Z,https://github.com/Tony-Tan/CUDA_Freshman
-10,cugraph,cuGraph - RAPIDS Graph Analytics Library,1420,258,2023-11-09T17:23:10Z,https://github.com/rapidsai/cugraph
-11,matconvnet,MatConvNet: CNNs for MATLAB,1376,761,2021-12-21T11:28:11Z,https://github.com/vlfeat/matconvnet
-12,Deformable-Convolution-V2-PyTorch,Deformable ConvNets V2 (DCNv2) in PyTorch,1349,225,2022-11-18T21:39:26Z,https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch
-13,cs344,Introduction to Parallel Programming class code,1227,1124,2022-06-27T11:56:37Z,https://github.com/udacity/cs344
-14,Alenka,GPU database engine,1165,126,2017-01-30T18:30:28Z,https://github.com/antonmks/Alenka
-15,CUDA-Programming,Sample codes for my CUDA programming book,1121,267,2023-07-27T12:20:22Z,https://github.com/brucefan1983/CUDA-Programming
-16,k2,"FSA/FST algorithms, differentiable, with PyTorch compatibility.",970,242,2023-11-01T08:30:54Z,https://github.com/k2-fsa/k2
-17,blocksparse,Efficient GPU kernels for block-sparse matrix multiplication and convolution,967,196,2023-06-08T11:01:25Z,https://github.com/openai/blocksparse
-18,CUDALibrarySamples,CUDA Library Samples,947,249,2023-11-07T20:41:42Z,https://github.com/NVIDIA/CUDALibrarySamples
-19,torchsparse,TorchSparse: Efficient Training and Inference Framework for Sparse Convolution on GPUs.,922,111,2023-11-07T15:06:41Z,https://github.com/mit-han-lab/torchsparse
-20,CudaSift,A CUDA implementation of SIFT for NVidia GPUs (1.2 ms on a GTX 1060),782,275,2023-09-12T18:52:16Z,https://github.com/Celebrandil/CudaSift
+1,opencv,Instant neural graphics primitives: lightning fast NeRF and more,14320,1785,2023-10-06T12:24:57Z,https://github.com/opencv/opencv

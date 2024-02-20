@@ -12,8 +12,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Load the tokenizer and model only once
-tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
-model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k")
+tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
+model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 
 
 root_dir = "miner_github/analyzer"
@@ -73,10 +73,19 @@ def search_patterns_in_commit_message(message):
 def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size, output_csv_file, commit_counter, published_commits):
     logging.info(f"Pattern found in commit {commit.hash}: {commit.msg}")
     commit_url = f"{repo_url}/commit/{commit.hash}"
-    # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
-    commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"'])
-    processed_commits.add(commit.hash)
-    commit_counter += 1
+    modified_file = commit.modified_files[0]
+    if modified_file.change_type != "ADD" and modified_file.change_type != "DELETE":
+        src_before = modified_file.source_code_before or "NA"
+        src_current = modified_file.source_code or "NA"
+        changed_method_name = ""
+        loc = ""
+        if len(modified_file.changed_methods) == 1:
+            changed_method_name = modified_file.changed_methods[0].name or "NA"
+            loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
+        # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
+        commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
+        processed_commits.add(commit.hash)
+        commit_counter += 1
     
     if commit_counter % buffer_size == 0:
         published_commits += buffer_size
@@ -99,7 +108,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
             continue  # Skip already processed commits
         modified_files_count = len(commit.modified_files)
         
-        if modified_files_count < 10 and get_prediction(commit.msg) == 'LABEL_1':
+        if modified_files_count == 1 and get_prediction(commit.msg) == 'LABEL_1':
             commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)
         # if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
         #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
@@ -115,7 +124,7 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
     with open(output_csv_file, 'a', newline='') as output_file:
         writer = csv.writer(output_file)
         if output_file.tell() == 0:
-            writer.writerow(["Project Name", "Commit URL", "Message"])
+            writer.writerow(["Project Name", "Commit URL", "Message", "src_before", "src", "changed_method_name", "loc"])
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
 
