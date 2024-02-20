@@ -50,6 +50,8 @@ parallel-ssh -i -h sshhosts 'python3 -c "import torch; print(torch.__version__)"
 echo "Installing transformers.."
 parallel-ssh -i -h sshhosts -t 0 'pip3 install transformers'
 sleep 5
+echo "cleaning previous version.."
+parallel-ssh -i -h sshhosts 'sudo rm -rf  miner_github/'
 echo "Cloning repo to all nodes home directory"
 parallel-ssh -i -h sshhosts 'git clone https://github.com/mak-azad/miner_github.git'
 
