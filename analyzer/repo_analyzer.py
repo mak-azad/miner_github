@@ -90,15 +90,15 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
         if len(modified_file.changed_methods) == 1:
             changed_method_name = modified_file.changed_methods[0].name or "NA"
             loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
-        # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
-            
-        #to get only commit messages uncomment 
-        commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"'])
+            # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
+                
+            #to get only commit messages uncomment 
+            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
-        #to get all uncomment
-        #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
-        processed_commits.add(commit.hash)
-        commit_counter += 1
+            #to get all uncomment
+            #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
+            processed_commits.add(commit.hash)
+            commit_counter += 1
     
     if commit_counter % buffer_size == 0:
         published_commits += buffer_size
@@ -116,7 +116,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
     processed_commits = set()
     commit_data_patterns1 = []
     commit_data_patterns2 = []
-    for commit in Repository(repo_url, only_modifications_with_file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp']).traverse_commits():
+    for commit in Repository(repo_url, only_modifications_with_file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cxx', '.c++']).traverse_commits():
         if commit.hash in processed_commits:
             continue  # Skip already processed commits
         modified_files_count = len(commit.modified_files)
@@ -127,7 +127,8 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
         #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
         # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
         #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
-        if commit_counter_patterns1 > 1000:
+        if commit_counter_patterns1 > 100:
+            logging.info("Desired number of commit found")
             break
     if commit_counter_patterns1 > published_commits_patterns1:
         write_commit_analysis_to_csv(output_csv_file_pattern1, commit_data_patterns1)
@@ -144,12 +145,13 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
             #writer.writerow(["Project Name", "Commit URL", "Message", "src_before", "src", "changed_method_name", "loc"])
 
             # write commit message only
-            writer.writerow(["Project Name", "Commit URL", "Message"])
+            writer.writerow(["Project Name", "Commit URL", "Message", "changed_method_name", "loc"])
 
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
 
 def main():
+    global commit_counter_patterns1
     logging.info("Script started")
     host_ip = get_public_ip()
     date = datetime.date.today().strftime("%m%d%Y")
@@ -160,10 +162,13 @@ def main():
     # patterns1 = ['perf', 'performance']
     # output_csv_file_patterns2 = os.path.join(results_dir, f"github_repo_analysis_result_{date}_{host_ip}_p2.csv")
     # patterns2 = ['mem', 'memory']
-    
+
     for repo_url in repo_urls:
         logging.info(f"Processing repo URL: {repo_url}")
         analyze_repository(repo_url, output_csv_file_patterns1)
+        if commit_counter_patterns1 > 100:
+            logging.info("Desired number of commit found")
+            break
         logging.info(f"Analysis is complete!")
 
 if __name__ == "__main__":
