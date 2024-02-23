@@ -1,6 +1,7 @@
 import socket
 from pydriller import Repository
 import csv
+import json
 import os
 import datetime
 import requests
@@ -8,6 +9,7 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+MAX_COMMIT = 6
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -83,20 +85,30 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
     commit_url = f"{repo_url}/commit/{commit.hash}"
     modified_file = commit.modified_files[0]
     if modified_file.change_type != "ADD" and modified_file.change_type != "DELETE":
-        src_before = modified_file.source_code_before or "NA"
-        src_current = modified_file.source_code or "NA"
-        changed_method_name = ""
         loc = ""
+        changed_method_name = ""
+        nlines = 0
+        complexity = 0
+        no_token = 0
         if len(modified_file.changed_methods) == 1:
+            src_before = modified_file.source_code_before or "NA"
+            src_current = modified_file.source_code or "NA"
+            changed_method_name = ""
+            nlines = modified_file.nloc
+            complexity = modified_file.complexity
+            no_token = modified_file.token_count
+            diff_parsed_dict = modified_file.diff_parsed()
+            diff_parsed_json = json.dump(diff_parsed_dict)
+
             changed_method_name = modified_file.changed_methods[0].name or "NA"
             loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
             # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
                 
             #to get only commit messages uncomment 
-            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
+            #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
             #to get all uncomment
-            #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc])
+            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
             processed_commits.add(commit.hash)
             commit_counter += 1
     
@@ -127,7 +139,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
         #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
         # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
         #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
-        if commit_counter_patterns1 > 100:
+        if commit_counter_patterns1 > MAX_COMMIT:
             logging.info("Desired number of commit found")
             break
     if commit_counter_patterns1 > published_commits_patterns1:
@@ -142,10 +154,10 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
         writer = csv.writer(output_file)
         if output_file.tell() == 0:
             # write all
-            #writer.writerow(["Project Name", "Commit URL", "Message", "src_before", "src", "changed_method_name", "loc"])
+            writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token", "diff_parsed"])
 
             # write commit message only
-            writer.writerow(["Project Name", "Commit URL", "Message", "changed_method_name", "loc"])
+            #writer.writerow(["Project Name", "Commit URL", "Message", "changed_method_name", "loc"])
 
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
@@ -166,10 +178,21 @@ def main():
     for repo_url in repo_urls:
         logging.info(f"Processing repo URL: {repo_url}")
         analyze_repository(repo_url, output_csv_file_patterns1)
-        if commit_counter_patterns1 > 100:
-            logging.info("Desired number of commit found")
+        if commit_counter_patterns1 > MAX_COMMIT:
+            logging.info("Exiting analysis!")
             break
-        logging.info(f"Analysis is complete!")
+    logging.info(f"Analysis is complete! Creating poll text file..")
+    # Command to execute
+    command = 'touch script_complete.txt'
+
+    # Execute the command
+    result = os.system(command)
+
+    if result == 0:
+        logging.info(f"File 'script_complete.txt' created successfully.")
+    else:
+        logging.info(f"Failed to create file 'script_complete.txt'.")
+
 
 if __name__ == "__main__":
     main()
