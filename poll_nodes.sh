@@ -6,8 +6,9 @@ HOSTS_FILE="sshhosts"
 # File to check for on the remote hosts
 CHECK_FILE="/home/ubuntu/miner_github/analyzer/script_complete.txt"
 
-# Time to wait between checks (in seconds)
-SLEEP_DURATION=300 # Example: 300 seconds = 5 minutes
+# Time to wait between checks (in seconds), taken from the first command line argument
+# If no argument is provided, default to 30 seconds
+SLEEP_DURATION=${1:-30} # Example: 300 seconds = 5 minutes
 
 while : ; do
     echo "Checking for $CHECK_FILE on all hosts..."
