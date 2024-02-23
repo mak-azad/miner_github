@@ -9,7 +9,7 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-MAX_COMMIT = 1
+MAX_COMMIT = 10000
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -108,7 +108,7 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
             #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
             #to get all uncomment
-            commit_data.append([commit.project_name, commit_url, commit.msg , src_before, src_current, changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
+            commit_data.append([commit.project_name, commit_url, commit.msg , src_before, src_current,diff_parsed_json, changed_method_name, loc, nlines,complexity,no_token])
             processed_commits.add(commit.hash)
             commit_counter += 1
     
@@ -156,7 +156,7 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
         writer = csv.writer(output_file)
         if output_file.tell() == 0:
             # write all
-            writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token", "diff_parsed"])
+            writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after","diff_parsed", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token"])
 
             # write commit message only
             #writer.writerow(["Project Name", "Commit URL", "Message", "changed_method_name", "loc"])
@@ -176,12 +176,13 @@ def write_commit_analysis_to_jsonl(output_jsonl_file, commit_data):
                 "commit_message": record[2], # Remove extra quotes
                 "src_before": record[3],
                 "src_after": record[4],
-                "changed_method_name": record[5],
-                "loc": record[6],
-                "m_nloc": record[7],
-                "m_cc": record[8],
-                "no_token": record[9],
-                "diff_parsed": record[10]
+                "diff_parsed": record[5],
+                "changed_method_name": record[6],
+                "loc": record[7],
+                "m_nloc": record[8],
+                "m_cc": record[9],
+                "no_token": record[10]
+                
             }
             # Write the JSON object to the file with a newline to separate records
             output_file.write(json.dumps(data) + '\n')
