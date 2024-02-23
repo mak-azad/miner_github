@@ -183,7 +183,7 @@ def main():
             break
     logging.info(f"Analysis is complete! Creating poll text file..")
     # Command to execute
-    command = 'touch script_complete.txt'
+    command = 'touch miner_github/analyzer/script_complete.txt'
 
     # Execute the command
     result = os.system(command)
