@@ -98,7 +98,7 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
             complexity = modified_file.complexity
             no_token = modified_file.token_count
             diff_parsed_dict = modified_file.diff_parsed
-            diff_parsed_json = json.dump(diff_parsed_dict)
+            diff_parsed_json = json.dumps(diff_parsed_dict)
 
             changed_method_name = modified_file.changed_methods[0].name or "NA"
             loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
