@@ -9,7 +9,7 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-MAX_COMMIT = 2
+MAX_COMMIT = 1
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -108,13 +108,14 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
             #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
             #to get all uncomment
-            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', src_before.replace('\n', '\\n').replace('\r', '\\r'), src_current.replace('\n', '\\n').replace('\r', '\\r'), changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
+            commit_data.append([commit.project_name, commit_url, commit.msg , src_before, src_current, changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
             processed_commits.add(commit.hash)
             commit_counter += 1
     
     if commit_counter % buffer_size == 0:
         published_commits += buffer_size
-        write_commit_analysis_to_csv(output_csv_file, commit_data)
+        #write_commit_analysis_to_csv(output_csv_file, commit_data)
+        write_commit_analysis_to_jsonl(output_csv_file, commit_data)
         logging.info(f"{commit_counter} commits processed and added to {output_csv_file}")
     
     return commit_counter
@@ -143,7 +144,8 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
             logging.info("Desired number of commit found")
             break
     if commit_counter_patterns1 > published_commits_patterns1:
-        write_commit_analysis_to_csv(output_csv_file_pattern1, commit_data_patterns1)
+        #write_commit_analysis_to_csv(output_csv_file_pattern1, commit_data_patterns1)
+        write_commit_analysis_to_jsonl(output_csv_file_pattern1, commit_data_patterns1)
 
     # if commit_counter_patterns2 > published_commits_patterns2:
     #     write_commit_analysis_to_csv(output_csv_file_pattern2, commit_data_patterns2)
@@ -151,7 +153,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
 
 def write_commit_analysis_to_csv(output_csv_file, commit_data):
     with open(output_csv_file, 'a', newline='') as output_file:
-        writer = csv.writer(output_file, quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(output_file)
         if output_file.tell() == 0:
             # write all
             writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token", "diff_parsed"])
@@ -161,6 +163,30 @@ def write_commit_analysis_to_csv(output_csv_file, commit_data):
 
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
+    
+
+
+def write_commit_analysis_to_jsonl(output_jsonl_file, commit_data):
+    with open(output_jsonl_file, 'a') as output_file:
+        for record in commit_data:
+            # Create a dictionary from the record data
+            data = {
+                "project_name": record[0],
+                "commit_url": record[1],
+                "commit_message": record[2], # Remove extra quotes
+                "src_before": record[3],
+                "src_after": record[4],
+                "changed_method_name": record[5],
+                "loc": record[6],
+                "m_nloc": record[7],
+                "m_cc": record[8],
+                "no_token": record[9],
+                "diff_parsed": record[10]
+            }
+            # Write the JSON object to the file with a newline to separate records
+            output_file.write(json.dumps(data) + '\n')
+    logging.info(f"Commit data written to {output_jsonl_file}")
+
 
 def main():
     global commit_counter_patterns1
@@ -170,7 +196,7 @@ def main():
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
     
     repo_urls = read_repository_urls_from_csv(input_csv_file)
-    output_csv_file_patterns1 = os.path.join(results_dir, f"github_repo_analysis_result_{date}_{host_ip}_perf.csv")
+    output_csv_file_patterns1 = os.path.join(results_dir, f"github_repo_analysis_result_{date}_{host_ip}_perf.jsonl")
     # patterns1 = ['perf', 'performance']
     # output_csv_file_patterns2 = os.path.join(results_dir, f"github_repo_analysis_result_{date}_{host_ip}_p2.csv")
     # patterns2 = ['mem', 'memory']
