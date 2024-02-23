@@ -9,7 +9,7 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-MAX_COMMIT = 6
+MAX_COMMIT = 2
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -151,7 +151,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
 
 def write_commit_analysis_to_csv(output_csv_file, commit_data):
     with open(output_csv_file, 'a', newline='') as output_file:
-        writer = csv.writer(output_file)
+        writer = csv.writer(output_file, quoting=csv.QUOTE_MINIMAL)
         if output_file.tell() == 0:
             # write all
             writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token", "diff_parsed"])
