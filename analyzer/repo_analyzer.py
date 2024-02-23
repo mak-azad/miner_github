@@ -17,6 +17,11 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 
+ # Check if GPU (CUDA) is available, else use CPU
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Move model to the chosen device
+model.to(device)
+
 # root for the script
 root_dir = "miner_github/analyzer"
 published_commits_patterns1 = 0
@@ -37,14 +42,19 @@ def get_prediction(input_text):
     """
     Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
     """
+    
     # Tokenize the input text
     inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
+    # Move the input tensors to the same device as the model
+    inputs = {k: v.to(device) for k, v in inputs.items()}
     with torch.no_grad():
         logits = model(**inputs).logits
     
+   
     predicted_class_id = logits.argmax().item()
     predicted_label = model.config.id2label[predicted_class_id]
     return predicted_label
+
 
 
 # function to get IP for the current host this script
