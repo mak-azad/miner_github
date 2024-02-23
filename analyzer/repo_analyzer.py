@@ -108,7 +108,7 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
             #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
             #to get all uncomment
-            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', '"'+ src_before +'"', '"'+ src_current +'"', changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
+            commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"', src_before.replace('\n', '\\n').replace('\r', '\\r'), src_current.replace('\n', '\\n').replace('\r', '\\r'), changed_method_name, loc, nlines,complexity,no_token, diff_parsed_json])
             processed_commits.add(commit.hash)
             commit_counter += 1
     
