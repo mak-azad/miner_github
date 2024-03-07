@@ -14,7 +14,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # Download the necessary NLTK models (run once)
 nltk.download('punkt')
 
-MAX_COMMIT = 2
+MAX_COMMIT = 5000
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 cpu_count = os.cpu_count()-2
