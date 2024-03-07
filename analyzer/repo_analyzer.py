@@ -1,5 +1,7 @@
 import socket
 from pydriller import Repository
+from tqdm import tqdm
+import nltk
 import csv
 import json
 import os
@@ -9,10 +11,13 @@ import logging
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-MAX_COMMIT = 10000
+# Download the necessary NLTK models (run once)
+nltk.download('punkt')
+
+MAX_COMMIT = 2
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+cpu_count = os.cpu_count()-2
 # Load the tokenizer and model only once
 tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
@@ -57,6 +62,11 @@ def get_prediction(input_text):
 
 
 
+def count_tokens_code(code):
+    tokens = nltk.word_tokenize(code)
+    # Filter or process tokens as needed
+    return len(tokens)
+
 # function to get IP for the current host this script
 def get_public_ip():
     try:
@@ -90,114 +100,174 @@ def process_commit(commit, repo_url, commit_data, processed_commits, buffer_size
     """
     Input: takes an 'commit' object and process it
     """
-    logging.info(f"Processing commit: {commit.hash}: {commit.msg}")
-    # get the commmit url
-    commit_url = f"{repo_url}/commit/{commit.hash}"
-    modified_file = commit.modified_files[0]
-    if modified_file.change_type != "ADD" and modified_file.change_type != "DELETE":
-        loc = ""
-        changed_method_name = ""
-        nlines = 0
-        complexity = 0
-        no_token = 0
-        if len(modified_file.changed_methods) == 1:
-            src_before = modified_file.source_code_before or "NA"
-            src_current = modified_file.source_code or "NA"
+    try:
+
+        logging.info(f"Processing commit: {commit.hash}: {commit.msg}")
+        # get the commmit url
+        commit_url = f"{repo_url}/commit/{commit.hash}"
+        modified_file = commit.modified_files[0] # get the modified file
+        if modified_file.change_type != "ADD" and modified_file.change_type != "DELETE":
+            # first get all the methods in this modified file
+            methods = modified_file.methods_before
+            loc = ""
             changed_method_name = ""
-            nlines = modified_file.nloc
-            complexity = modified_file.complexity
-            no_token = modified_file.token_count
-            diff_parsed_dict = modified_file.diff_parsed
-            diff_parsed_json = json.dumps(diff_parsed_dict)
+            nlines = 0
+            complexity = 0
+            no_token = 0
+            if len(modified_file.changed_methods) == 1:
+                commit_message = commit.msg
+                changed_method = modified_file.changed_methods[0]
+                #extract info about this changed method
+                method_name = changed_method.name # get the name of the changed method
+                start_line = changed_method.start_line # its body start
+                end_line = changed_method.end_line      # body end
 
-            changed_method_name = modified_file.changed_methods[0].name or "NA"
-            loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
-            # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
-                
-            #to get only commit messages uncomment 
-            #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
 
-            #to get all uncomment
-            commit_data.append([commit.project_name, commit_url, commit.msg , src_before, src_current,diff_parsed_json, changed_method_name, loc, nlines,complexity,no_token])
-            processed_commits.add(commit.hash)
-            commit_counter += 1
-    
-    if commit_counter % buffer_size == 0:
-        published_commits += buffer_size
-        #write_commit_analysis_to_csv(output_csv_file, commit_data)
-        write_commit_analysis_to_jsonl(output_csv_file, commit_data)
-        logging.info(f"{commit_counter} commits processed and added to {output_csv_file}")
-    
+                # now we need its original body, iterate over all original method and extract 
+                for m in methods: 
+                    if m == changed_method:
+                        #print("FOUND")
+                        pre_m_start = m.start_line # original method code
+                        pre_m_end = m.end_line     # original method code ends
+                        # print(m.start_line)
+                        # print(m.end_line)
+
+                # Extract method body from BEFORE change
+                if modified_file.source_code_before:
+                    lines_before = modified_file.source_code_before.split('\n')
+                    #lines_before = modified_file.source_code_before
+                    method_body_before = '\n'.join(lines_before[pre_m_start-1:pre_m_end])
+                    #print(f"Method {method_name} BEFORE change:\n{method_body_before}\n")
+                    
+                # Extract method body from AFTER change
+                if modified_file.source_code:
+                    lines_after = modified_file.source_code.split('\n')
+                    #lines_after = modified_file.source_code
+                    method_body_after = '\n'.join(lines_after[start_line-1:end_line])
+
+                # changed_method_name = ""
+                # nlines = modified_file.nloc
+                # complexity = modified_file.complexity
+                # no_token = modified_file.token_count
+                # diff_parsed_dict = modified_file.diff_parsed
+                # diff_parsed_json = json.dumps(diff_parsed_dict)
+
+                # changed_method_name = modified_file.changed_methods[0].name or "NA"
+                # loc = "[" + str(modified_file.changed_methods[0].start_line) + ":"+ str(modified_file.changed_methods[0].end_line) + "]"
+                # commit_data.append([commit.project_name, commit_url, commit.insertions, commit.deletions, commit.lines, commit.files])
+                    
+                #to get only commit messages uncomment 
+                #commit_data.append([commit.project_name, commit_url, '"'+ commit.msg + '"',changed_method_name, loc])
+                commit_data.append([commit.project_name, commit_url, '"'+ commit_message+ '"', method_name, method_body_before, method_body_after, count_tokens_code(commit_message), count_tokens_code(method_body_after)])
+
+                #to get all uncomment
+                #commit_data.append([commit.project_name, commit_url, commit.msg , src_before, src_current,diff_parsed_json, changed_method_name, loc, nlines,complexity,no_token])
+                processed_commits.add(commit.hash)
+                commit_counter += 1
+        
+        if commit_counter % buffer_size == 0:
+            published_commits += buffer_size
+            #write_commit_analysis_to_csv(output_csv_file, commit_data)
+            write_commit_analysis_to_jsonl(output_csv_file, commit_data)
+            logging.info(f"{commit_counter} commits processed and added to {output_csv_file}")
+    except Exception as e:
+        logging.error(f"Error processing commit {commit.hash}: {e}")
+        # Decide on further actions: skip, retry, mark as processed, etc.    
     return commit_counter
+
 
 def analyze_repository(repo_url, output_csv_file_pattern1):
     """
-    repo_url: url for the repo to be analyzed
+    repo_url: url for the repo to be analyzed, it analyzes all commit of this repo
     patterns: now we don't need it.
     """
     global commit_counter_patterns1, commit_counter_patterns2, published_commits_patterns1, published_commits_patterns2
     processed_commits = set()
     commit_data_patterns1 = []
     commit_data_patterns2 = []
-    for commit in Repository(repo_url, only_modifications_with_file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cxx', '.c++']).traverse_commits():
-        if commit.hash in processed_commits:
-            continue  # Skip already processed commits
-        modified_files_count = len(commit.modified_files)
-        
-        if modified_files_count == 1 and get_prediction(commit.msg) == 'LABEL_1':
-            commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)
-        # if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
-        #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
-        # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
-        #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
-        if commit_counter_patterns1 > MAX_COMMIT:
-            logging.info("Desired number of commit found")
-            break
+    try:
+        #provide number of worker threads to max capacity to reduce processing time
+        for commit in Repository(repo_url, num_workers=cpu_count, only_modifications_with_file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cxx', '.c++']).traverse_commits():
+            try:
+                if commit.hash in processed_commits:
+                    continue  # Skip already processed commits
+                modified_files_count = len(commit.modified_files)
+                if modified_files_count > 1: 
+                    continue
+                if modified_files_count == 1 and get_prediction(commit.msg) == 'LABEL_1':
+                    commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)
+                # if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
+                #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
+                # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
+                #     commit_counter_patterns2 = process_commit(commit, repo_url, commit_data_patterns2, processed_commits, buffer_size, output_csv_file_pattern2, commit_counter_patterns2, published_commits_patterns2)
+            except Exception as e:
+                logging.error(f"Failed to process commit {commit.hash} in repository {repo_url}: {e}")
+                continue  # This will skip the rest of the current loop iteration and proceed to the next commit
+            
+            if commit_counter_patterns1 > MAX_COMMIT:
+                logging.info("Desired number of commit found")
+                break
+    except Exception as e:
+        logging.error(f"Failed to process repository {repo_url}: {e}")
     if commit_counter_patterns1 > published_commits_patterns1:
         #write_commit_analysis_to_csv(output_csv_file_pattern1, commit_data_patterns1)
         write_commit_analysis_to_jsonl(output_csv_file_pattern1, commit_data_patterns1)
 
     # if commit_counter_patterns2 > published_commits_patterns2:
     #     write_commit_analysis_to_csv(output_csv_file_pattern2, commit_data_patterns2)
-    logging.info(f"Completed analysis for {repo_url}. Commits found: Pattern1={commit_counter_patterns1}")
+    logging.info(f"Completed analysis for REPO: {repo_url}. Commits found: {commit_counter_patterns1}")
 
 def write_commit_analysis_to_csv(output_csv_file, commit_data):
     with open(output_csv_file, 'a', newline='') as output_file:
         writer = csv.writer(output_file)
         if output_file.tell() == 0:
             # write all
-            writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after","diff_parsed", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token"])
+            #writer.writerow(["project_name", "commit_url", "commit_message", "src_before", "src_after","diff_parsed", "changed_method_name", "loc", "m_nloc", "m_cc", "no_token"])
 
             # write commit message only
             #writer.writerow(["Project Name", "Commit URL", "Message", "changed_method_name", "loc"])
+            writer.writerow(["project", "url", "commit_message", "modified_method", "method_src_before", "method_src_after", "msg_tokens", "src_tokens"])
 
         writer.writerows(commit_data)
     logging.info(f"Commit data written to {output_csv_file}")
     
 
-
+# going to write data in .jsonl format becuse csv was breaking code data
 def write_commit_analysis_to_jsonl(output_jsonl_file, commit_data):
-    with open(output_jsonl_file, 'a') as output_file:
-        for record in commit_data:
-            # Create a dictionary from the record data
-            data = {
-                "project_name": record[0],
-                "commit_url": record[1],
-                "commit_message": record[2], # Remove extra quotes
-                "src_before": record[3],
-                "src_after": record[4],
-                "diff_parsed": record[5],
-                "changed_method_name": record[6],
-                "loc": record[7],
-                "m_nloc": record[8],
-                "m_cc": record[9],
-                "no_token": record[10]
-                
-            }
-            # Write the JSON object to the file with a newline to separate records
-            output_file.write(json.dumps(data) + '\n')
-    logging.info(f"Commit data written to {output_jsonl_file}")
 
+    # Define a safe file size limit (e.g., 1 GB in this example)
+    safe_file_size_limit = 7 * 1024 * 1024 * 1024  # 1 GB in bytes
+
+    # Check the current file size
+    if os.path.exists(output_jsonl_file):
+        if os.path.getsize(output_jsonl_file) + len(json.dumps(commit_data)) > safe_file_size_limit:
+            logging.error("Adding this commit would exceed the safe file size limit. Consider splitting the output into multiple files.")
+            return
+
+    try:
+
+        with open(output_jsonl_file, 'a') as output_file:
+            for record in commit_data:
+                # Create a dictionary from the record data
+                data = {
+                    "project_name": record[0],
+                    "commit_url": record[1],
+                    "commit_message": record[2], # Remove extra quotes
+                    "src_before": record[3],
+                    "src_after": record[4],
+                    "diff_parsed": record[5],
+                    "changed_method_name": record[6],
+                    "loc": record[7],
+                    "m_nloc": record[8],
+                    "m_cc": record[9],
+                    "no_token": record[10]
+                    
+                }
+                # Write the JSON object to the file with a newline to separate records
+                output_file.write(json.dumps(data) + '\n')
+        logging.info(f"Commit data written to {output_jsonl_file}")
+    except Exception as e:
+        logging.error(f"Failed to write data to {output_jsonl_file}: {e}")
 
 def main():
     global commit_counter_patterns1

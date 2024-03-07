@@ -38,7 +38,7 @@ parallel-ssh -i -h sshhosts 'sudo apt-get update && sudo apt-get install -y soft
 
 # Using parallel-ssh to install Python packages on all hosts
 echo "Installing Python packages (pydriller, pygit2, pandas) on all hosts..."
-parallel-ssh -i -h sshhosts -t 0 'pip3 install pydriller pygit2 pandas'
+parallel-ssh -i -h sshhosts -t 0 'pip3 install pydriller pygit2 pandas nltk'
 
 
 echo "Installing ML related libs..."
