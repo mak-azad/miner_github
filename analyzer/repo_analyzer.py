@@ -245,7 +245,7 @@ def write_commit_analysis_to_jsonl(output_jsonl_file, commit_data):
             return
 
     try:
-
+        #writer.writerow(["project", "url", "commit_message", "modified_method", "method_src_before", "method_src_after", "msg_tokens", "src_tokens"])
         with open(output_jsonl_file, 'a') as output_file:
             for record in commit_data:
                 # Create a dictionary from the record data
@@ -253,15 +253,11 @@ def write_commit_analysis_to_jsonl(output_jsonl_file, commit_data):
                     "project_name": record[0],
                     "commit_url": record[1],
                     "commit_message": record[2], # Remove extra quotes
-                    "src_before": record[3],
-                    "src_after": record[4],
-                    "diff_parsed": record[5],
-                    "changed_method_name": record[6],
-                    "loc": record[7],
-                    "m_nloc": record[8],
-                    "m_cc": record[9],
-                    "no_token": record[10]
-                    
+                    "modified_method": record[3],
+                    "method_src_before": record[4],
+                    "method_src_after": record[5],
+                    "msg_tokens": record[6],
+                    "src_tokens": record[7]
                 }
                 # Write the JSON object to the file with a newline to separate records
                 output_file.write(json.dumps(data) + '\n')
