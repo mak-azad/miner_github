@@ -217,7 +217,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
                 n_file_changed = len(commit.modified_files)
 
                 # Generate a hash for the commit message
-                commit_message_hash = hashlib.sha256(commit.encode('utf-8')).hexdigest()
+                commit_message_hash = hashlib.sha256(commit_message.encode('utf-8')).hexdigest()
                 if commit_message_hash in seen_hashes:
                     logging.info(f"Skipping duplicate commit: {commit.hash}")
                     continue
