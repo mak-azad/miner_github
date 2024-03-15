@@ -211,7 +211,9 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
         for commit in Repository(repo_url, num_workers=cpu_count, only_modifications_with_file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cxx', '.c++']).traverse_commits():
             try:
                 commit_message = commit.msg.lower().replace('\n', ' ')
-                
+                if 'merge' in commit_message:
+                    logging.info(f"Skipping merge commit: {commit.hash}")
+                    continue
                 n_file_changed = len(commit.modified_files)
 
                 # Generate a hash for the commit message
@@ -219,6 +221,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
                 if commit_message_hash in seen_hashes:
                     logging.info(f"Skipping duplicate commit: {commit.hash}")
                     continue
+                seen_hashes.add(commit_message_hash)
                 if commit.hash in processed_commits:
                     continue  # Skip already processed commits
                 modified_files_count = len(commit.modified_files)
