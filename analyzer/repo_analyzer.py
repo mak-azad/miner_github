@@ -231,6 +231,7 @@ def analyze_repository(repo_url, output_csv_file_pattern1):
                 # only consider 1 file changed
                 if n_file_changed == 1  and get_prediction(commit_message) == 'LABEL_1':
                     commit_counter_patterns1 = process_commit(commit, repo_url, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)
+                    logging.info(f"current length of ds:{len(commit_counter_patterns1)}")
                 # if modified_files_count < 10 and search_patterns_in_commit_message(commit.msg):
                 #     commit_counter_patterns1 = process_commit(commit, repo_url, commit_data_patterns1, processed_commits, buffer_size, output_csv_file_pattern1, commit_counter_patterns1, published_commits_patterns1)        
                 # fif patterns2 and modified_files_count < 10 and search_patterns_in_commit_message(commit.msg, patterns2):
@@ -284,6 +285,7 @@ def write_commit_analysis_to_jsonl(output_jsonl_file):
     try:
         #writer.writerow(["project", "url", "commit_message", "modified_method", "method_src_before", "method_src_after", "msg_tokens", "src_tokens"])
         with open(output_jsonl_file, 'a') as output_file:
+            logging.inf(f"the length of printable ds:{len(commit_counter_patterns1)}")
             for record in commit_data_patterns1:
                 # Create a dictionary from the record data
                 data = {
@@ -298,7 +300,7 @@ def write_commit_analysis_to_jsonl(output_jsonl_file):
                 }
                 # Write the JSON object to the file with a newline to separate records
                 output_file.write(json.dumps(data) + '\n')
-        logging.info(f"Commit data written to {output_jsonl_file}")
+            logging.info(f"Commit data written to {output_jsonl_file}")
         #now clear the buffer
         commit_data_patterns1.clear()
     except Exception as e:
