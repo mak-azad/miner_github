@@ -39,7 +39,7 @@ model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Resea
 
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logging.info(f"Using device {device}")
+#logging.info(f"Using device {device}")
 # Move model to the chosen device
 model.to(device)
 
@@ -70,6 +70,7 @@ os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
 log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.info(f"Using device {device}")
 
 # use the loaded model to predict classificaiton
 def get_prediction(input_text):
