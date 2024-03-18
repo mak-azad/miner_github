@@ -54,21 +54,21 @@ buffer_size = 100  # Set the number of commits after which the result file will 
 
 commit_data_patterns1 = []
 
-def setup_logging():
-    '''
-    # Function to initialize logging
-    '''
-    logs_dir = os.path.join(root_dir, "logs")  # Log directory
-    os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
-    log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
-    logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# def setup_logging():
+#     '''
+#     # Function to initialize logging
+#     '''
+#     logs_dir = os.path.join(root_dir, "logs")  # Log directory
+#     os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
+#     log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+#     logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# # Logging configuration
-# logs_dir = os.path.join(root_dir, "logs") #log directory
-# os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
-# log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
-# logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Logging configuration
+logs_dir = os.path.join(root_dir, "logs") #log directory
+os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
+log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 # use the loaded model to predict classificaiton
@@ -339,7 +339,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
     global batch_id
     global total_found
 
-    data_threshold = 5
+    data_threshold = 100
     commit_data = []
     start_time = time.time()  # Record the start time for the current repository
 
@@ -479,5 +479,4 @@ def main():
 
 
 if __name__ == "__main__":
-    setup_logging()
     main()
