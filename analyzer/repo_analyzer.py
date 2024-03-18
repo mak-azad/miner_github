@@ -9,6 +9,7 @@ import datetime
 import requests
 import logging
 import torch
+import time
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import hashlib
 
@@ -18,22 +19,31 @@ nltk.download('punkt')
 
 MAX_COMMIT = 150  #define max number of commits to be collected, uncomment if not necessary
 
+# Initialize a global batch_id
+batch_id = 0
+seen_hashes = set()
+total_found = 0
+
 
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 cpu_count = os.cpu_count()-2
 
 # Load the tokenizer and model only once
-tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
-model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
+
+tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
+model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
+
+# tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
+# model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Finetuned_Final_LM_200k_v3")
 
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logging.info(f"Using device {device}")
 # Move model to the chosen device
 model.to(device)
 
 # root for the script
-seen_hashes = set()
 total_valid_commit = 0
 root_dir = "miner_github/analyzer"
 published_commits_patterns1 = 0
@@ -44,14 +54,21 @@ buffer_size = 100  # Set the number of commits after which the result file will 
 
 commit_data_patterns1 = []
 
-# hasing for duplication
+def setup_logging():
+    '''
+    # Function to initialize logging
+    '''
+    logs_dir = os.path.join(root_dir, "logs")  # Log directory
+    os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
+    log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+    logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# Logging configuration
-logs_dir = os.path.join(root_dir, "logs") #log directory
-os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
-log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
-logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# # Logging configuration
+# logs_dir = os.path.join(root_dir, "logs") #log directory
+# os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
+# log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+# logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 # use the loaded model to predict classificaiton
@@ -104,11 +121,7 @@ def read_repository_urls_from_csv(input_csv_file):
         repo_urls = [row[6] for row in reader]
     return repo_urls
 
-# dummy test function
-def search_patterns_in_commit_message(message):
-    if 'perf' in message:
-        return True
-    return False
+
 
 def process_commit(commit, repo_url, processed_commits, buffer_size, output_csv_file, commit_counter, published_commits):
     """
@@ -306,16 +319,133 @@ def write_commit_analysis_to_jsonl(output_jsonl_file):
     except Exception as e:
         logging.error(f"Failed to write data to {output_jsonl_file}: {e}")
 
+
+
+
+
+def write_commit_data_to_file(commit_data, batch_id):
+    '''
+    Function to write commit data to a new .jsonl file for each batch, using batch_id
+    '''
+    # Generate filename using the batch_id
+    filename = os.path.join(results_dir, f"batch_{batch_id}.jsonl")
+    with open(filename, 'w') as file:  # Write mode
+        for commit_info in commit_data:
+            file.write(json.dumps(commit_info) + '\n')
+    commit_data.clear()  # Clear the list after writing
+
+def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp']):
+    global seen_hashes
+    global batch_id
+    global total_found
+
+    data_threshold = 5
+    commit_data = []
+    start_time = time.time()  # Record the start time for the current repository
+
+    try:
+        for commit in Repository(repo_url, only_modifications_with_file_types=file_types).traverse_commits():
+            try:
+                commit_message = commit.msg.lower().replace('\n', ' ')
+                if len(commit.modified_files) == 1 and get_prediction(commit_message) == 'LABEL_1':
+                    modified_file = commit.modified_files[0]
+
+                    if modified_file.change_type not in ["ADD", "DELETE"]:
+                        if len(modified_file.changed_methods) == 1:
+                            
+                            if 'merge' in commit_message:
+                                logging.info(f"Skipping merge commit: {commit.hash}")
+                                continue
+                            # get commit hash
+                            commit_message_hash = hashlib.sha256(commit_message.encode('utf-8')).hexdigest()
+                            if commit_message_hash in seen_hashes:
+                                logging.info(f"Skipping duplicate commit: {commit.hash}")
+                                continue
+                            
+                            #now proceed, extract info for this commit which met all our critera
+                            # get changed method name
+                            changed_method_name = modified_file.changed_methods[0].name
+                            # get the commmit url
+                            commit_url = repo_url
+                            # get hash 
+                            sha = commit.hash
+                            # get filename
+                            filename = modified_file.filename
+                            # get changed method's location
+                            changed_method_loc_start = modified_file.changed_methods[0].start_line
+                            changed_method_loc_end = modified_file.changed_methods[0].end_line
+                            loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
+                            # get the list of methods in this file
+                            methods = modified_file.methods_before
+                            # now iterate through these methods to extract original version
+                            # of the changed_method
+                            for func in methods:
+                                if func.name == changed_method_name:
+                                     orig_method_loc_start = func.start_line
+                                     orig_method_loc_end = func.end_line
+                                     break
+                            loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
+                            
+                            #get tokens in file
+                            file_tokens = modified_file.token_count
+
+                            # original source code
+                            src_original = modified_file.source_code_before or "na"
+                            src_modified = modified_file.source_code or "na"
+
+                            # its time to concat all these info
+                            commit_info = {
+                                'commit_hash': commit.hash,
+                                'commit_url': commit_url,
+                                'commit_message': commit_message,
+                                'filename': filename,
+                                'no_tokens': file_tokens,
+                                'modified_method': changed_method_name,
+                                'loc_before': loc_orig_method,
+                                'loc_after': loc_changed_method,
+                                'src_before': src_original,
+                                'src_after': src_modified
+                            }
+                            # add this commit info to running list
+                            commit_data.append(commit_info)
+                            # mark it seen to avoid duplicate
+                            seen_hashes.add(commit_message_hash)
+                            total_found += 1
+                            logging.info(f"Total found: {total_found}")
+
+                            if len(commit_data) >= data_threshold:
+                                batch_id += 1
+                                write_commit_data_to_file(commit_data, batch_id)
+            except Exception as commit_error:
+                logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
+                # Continue to the next commit despite the error
+                continue
+        #remaining data if any
+        if commit_data:
+            batch_id += 1
+            write_commit_data_to_file(commit_data, batch_id)
+
+    except Exception as repo_error:
+        logging.error(f"Error while accessing repository '{repo_url}': {repo_error}")
+        # Continue to the next repository despite the error
+
+    finally:
+        end_time = time.time()  # End time for the current repository
+        time_taken = end_time - start_time
+        logging.info(f"Time taken for processing {repo_url}: {time_taken} seconds")
+
+
+
 def main():
     global commit_counter_patterns1
-    logging.info("Script started")
+    logging.info("Starting mining script..")
     host_ip = get_public_ip()
     date = datetime.date.today().strftime("%m%d%Y")
     
     # here we read the .csv file containg this node's split of the repo list to be mined
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
     repo_urls = read_repository_urls_from_csv(input_csv_file)
-    
+    #repo_urls = ['https://github.com/ccache/ccache','https://github.com/facebook/hhvm']  # List of repository URLs to process
     # output location for result file
     output_csv_file_patterns1 = os.path.join(results_dir, f"analysis_result_{host_ip}_perf.jsonl")
     # patterns1 = ['perf', 'performance']
@@ -325,13 +455,15 @@ def main():
     for repo_url in repo_urls:
         logging.info(f"Processing repo URL: {repo_url}")
         try:
-            analyze_repository(repo_url, output_csv_file_patterns1)
+            #analyze_repository(repo_url, output_csv_file_patterns1)
+            mine_repo_commits(repo_url)
         except Exception as e:
             logging.error(f"Error processing this repository, continueing {repo_url}: {e}")
             continue
         if commit_counter_patterns1 > MAX_COMMIT:
             logging.info("Exiting analysis!")
             break
+
     logging.info(f"Analysis is complete! Creating poll text file..")
     logging.info(f"Total valid commit: {total_valid_commit}")
     # Command to execute
@@ -347,4 +479,5 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()
