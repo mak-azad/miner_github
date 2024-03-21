@@ -51,7 +51,8 @@ published_commits_patterns2 = 0
 commit_counter_patterns1 = 0
 commit_counter_patterns2 = 0
 buffer_size = 100  # Set the number of commits after which the result file will be pushed to GitHub
-
+data_threshold = 100
+commit_data = []
 commit_data_patterns1 = []
 
 # def setup_logging():
@@ -324,10 +325,11 @@ def write_commit_analysis_to_jsonl(output_jsonl_file):
 
 
 
-def write_commit_data_to_file(commit_data, batch_id):
+def write_commit_data_to_file(batch_id):
     '''
     Function to write commit data to a new .jsonl file for each batch, using batch_id
     '''
+    global commit_data
     # Generate filename using the batch_id
     filename = os.path.join(results_dir, f"batch_{batch_id}.jsonl")
     with open(filename, 'w') as file:  # Write mode
@@ -339,9 +341,9 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
     global seen_hashes
     global batch_id
     global total_found
+    global commit_data
+    global data_threshold
 
-    data_threshold = 100
-    commit_data = []
     start_time = time.time()  # Record the start time for the current repository
 
     try:
