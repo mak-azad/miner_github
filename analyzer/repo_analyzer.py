@@ -423,10 +423,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
                 continue
-        #remaining data if any
-        if commit_data:
-            batch_id += 1
-            write_commit_data_to_file(commit_data, batch_id)
+
 
     except Exception as repo_error:
         logging.error(f"Error while accessing repository '{repo_url}': {repo_error}")
@@ -466,6 +463,12 @@ def main():
         if commit_counter_patterns1 > MAX_COMMIT:
             logging.info("Exiting analysis!")
             break
+
+    logging.info(f"Writing remaining commit data if any")
+    #remaining data if any
+    if commit_data:
+        batch_id += 1
+        write_commit_data_to_file(commit_data, batch_id)
 
     logging.info(f"Analysis is complete! Creating poll text file..")
     logging.info(f"Total valid commit: {total_valid_commit}")
