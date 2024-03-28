@@ -45,9 +45,9 @@ model.to(device)
 
 # root for the script
 
-root_dir = "/home/ubuntu/tmp/analyzer"
+root_dir = "miner_github/analyzer"
 
-data_threshold = 5
+data_threshold = 500
 commit_data = [] # running commit buffer
 
 
