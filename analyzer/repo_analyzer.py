@@ -173,7 +173,6 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                             if 'merge' in commit_message:
                                 logging.info(f"Skipping merge commit: {commit.hash}")
                                 continue
-                            assert commit.merge == False
                             # get commit hash
 
                             # original source code
@@ -242,7 +241,6 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                             if len(commit_data) == data_threshold:
                                 batch_id += 1
                                 write_commit_data_to_file()
-                                assert len(commit_data) == 0
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
@@ -304,7 +302,6 @@ def main():
         logging.info(f"Found remaining {len(commit_data)} commit rows")
         batch_id += 1
         write_commit_data_to_file()
-        assert len(commit_data) == 0
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
