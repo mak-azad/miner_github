@@ -15,7 +15,7 @@ def read_ssh_hosts(filename):
 
 # Function to split data into separate input CSV files for each node
 def split_csv_data(input_csv, num_nodes, hostnames, split_files_dir):
-    input_df = pd.read_csv(input_csv)
+    input_df = pd.read_csv(input_csv).sort_values(by='url')
     rows_per_node = len(input_df) // num_nodes
     split_data = []
     for i in range(num_nodes):

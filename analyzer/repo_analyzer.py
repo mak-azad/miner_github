@@ -101,7 +101,7 @@ def get_ip_from_sshosts(sshosts_path):
         logging.error(f"Error reading from sshosts: {e}")
         return None
 
-def get_public_ip(sshhosts_path='sshhosts_hostname'):
+def get_public_ip(sshhosts_path='../sshhosts_hostname'):
     ip_address = get_ip_from_sshosts(sshhosts_path)
     if ip_address:
         logging.info(f"fetched IP locally!")
