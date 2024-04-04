@@ -291,9 +291,9 @@ def main():
         except Exception as e:
             logging.error(f"Error processing this repository, continueing {repo_url}: {e}")
             continue
-        if total_found > MAX_COMMIT:
-            logging.info("Exiting analysis!")
-            break
+        # if total_found > MAX_COMMIT:
+        #     logging.info("Exiting analysis!")
+        #     break
         
 
     logging.info(f"Writing remaining commit data if any")
