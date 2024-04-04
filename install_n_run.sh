@@ -57,7 +57,7 @@ EOF
 echo "OCI configuration written to ~/.oci/config"
 
 echo "Testing cloud storage.."
-python3 test_oci_store2.py 
+python3 miner_github/test_oci_store2.py 
 
 
 
