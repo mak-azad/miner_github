@@ -14,6 +14,8 @@ source miniforge3/bin/activate mytoolenv
 echo "Installing Python packages (pydriller, pygit2, pandas) on all hosts..."
 sleep 5
 pip3 install pydriller pygit2 pandas nltk
+echo "Installing OCI"
+pip3 install oci
 echo "Installing ML related libs..."
 sleep 5
 echo "Installing pytorch.."
