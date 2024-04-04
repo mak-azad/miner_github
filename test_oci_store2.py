@@ -2,6 +2,7 @@ import os
 import json
 import oci
 from oci.object_storage import ObjectStorageClient
+import socket
 
 def get_oci_config():
     """
@@ -29,7 +30,8 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, re
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
-    filename = f"test2_batch_{batch_id}.jsonl"
+    hostname = socket.gethostname()
+    filename = f"{hostname}_test2_batch_{batch_id}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
