@@ -37,15 +37,16 @@ echo "Updating and installing Python 3.8 on all hosts listed in sshhosts..."
 parallel-ssh -i -h sshhosts 'sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python3.8'
 
 echo "cleaning previous version.."
+sleep 5
 parallel-ssh -i -h sshhosts 'sudo rm -rf  miner_github/'
 echo "Cloning repo to all nodes home directory"
 parallel-ssh -i -h sshhosts 'git clone https://github.com/mak-azad/miner_github.git'
 
 echo "Spliting task to all nodes..."
-python3 task_parallelizer.py repository_lists/github_repositories_C++_12232023.csv ubuntu
+python3 task_parallelizer.py repository_lists/repo.csv ubuntu
 echo "Running miner on cluster...."
 sleep 5
-parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P 'nohup bash install_n_run.sh'
+parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
 
 
 echo "Script execution completed at master"
