@@ -42,7 +42,7 @@ oci_user_ocid="ocid1.user.oc1..aaaaaaaantmgpywouidjiiw33kdpnlcadmdgsqotqwvwwtzfb
 oci_fingerprint="26:2d:ef:f3:9c:ff:93:42:97:36:05:70:06:a1:72:48"
 oci_tenancy_ocid="ocid1.tenancy.oc1..aaaaaaaar6oqqngegbs2tthc4vjzm3ruzvrddsof45yknta2oo6jmkvcgk5q"
 oci_region="us-ashburn-1"
-oci_key_file="miner_github/file.pem" # Ensure this path is correct and accessible
+oci_key_file="file.pem" # Ensure this path is correct and accessible
 
 # Write the config file. Adjust the path to the key file as necessary.
 cat > ~/.oci/config << EOF

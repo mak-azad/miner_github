@@ -29,7 +29,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, re
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
-    filename = f"test_batch_{batch_id}.jsonl"
+    filename = f"test2_batch_{batch_id}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -43,7 +43,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, re
         print(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
-
+          
 # Example usage
 if __name__ == "__main__":
     namespace = 'idqgqghww6tn'
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     #commit_data = []  # Assume this is populated with your data
     # Example data
     commit_data = [{'id': 1, 'message': 'First commit'}, {'id': 2, 'message': 'Second commit'}]
-    results_dir = '/home/ubuntu/result'
+    results_dir = '.'
     batch_id = 1
     
     write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
