@@ -8,7 +8,7 @@ source /home/ubuntu/miniforge3/etc/profile.d/conda.sh
 
 # Activate the environment
 # Note: For script use, prefer this method over `conda activate`
-source activate mytoolenv
+source miniforge3/bin/activate mytoolenv
 
 # Follow-up commands that require the Conda environment can go here
 echo "Installing Python packages (pydriller, pygit2, pandas) on all hosts..."
