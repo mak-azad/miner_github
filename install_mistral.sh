@@ -5,6 +5,7 @@
 pip3 install langchain 
 pip3 install bitsandbytes 
 sudo apt install git-lfs -y
+rm -rf  Mistral-7B-Instruct-v0.2/
 git clone https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2
 cd  Mistral-7B-Instruct-v0.2/ 
 git lfs fetch 
