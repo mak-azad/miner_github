@@ -57,6 +57,20 @@ EOF
 # Set file permissions to be read-only by the file's owner
 #chmod 600 ~/.oci/config
 echo "OCI configuration written to ~/.oci/config"
+echo "Installing mistral.."
+sleep 5
+pip3 install langchain 
+pip3 install bitsandbytes 
+sudo apt install git-lfs -y
+rm -rf  Mistral-7B-Instruct-v0.2/
+git clone https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2
+cd  Mistral-7B-Instruct-v0.2/ 
+git lfs fetch 
+git lfs pull 
+cd ..
+echo "Testing mistral...."
+sleep 5
+python3 /miner_github/test_mistral7b.py
 
 #echo "Testing cloud storage.."
 #python3 miner_github/test_oci_store2.py 
