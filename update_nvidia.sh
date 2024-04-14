@@ -1,8 +1,9 @@
 #!/bin/bash
 echo 'Removing unattended upgrade!'
-parallel-ssh -i -h sshhosts -t 0 'sudo apt remove --purge unattended-upgrades -y'
+parallel-ssh -i -h sshosts -t 0 'sudo systemctl stop unattended-upgrades -y'
+parallel-ssh -i -h sshhosts -t 0 'sudo apt-get purge unattended-upgrades -y'
 echo 'Status:'
-parallel-ssh -i -h sshhosts -t 0 'dpkg -l | grep unattended-upgrades'
+parallel-ssh -i -h sshhosts -t 0 'sudo systemctl status unattended-upgrades.service'
 sleep 5
 echo 'Cleaning previous nvidia driver'
 sleep 5
