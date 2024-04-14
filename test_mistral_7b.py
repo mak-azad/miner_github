@@ -39,4 +39,8 @@ prompt = PromptTemplate(
 )
 llm = LLMChain(llm=hf, prompt=prompt)
 
-print(llm.run("scsi: ufs: add debug counters for recoverable errors during runtime  There is no way to know how many times various UFS errors happened while system is running if we have successfully recovered from those errors. Those failures should be counted and inspected as they might be anomaly behavior of the driver and can impact performance. This change adds support to capture these failures statistics like how many times we have seen errors, and which type of errors.  To reset the counters: echo 1 > /sys/kernel/debug/ufs/err_stats  To print them out: cat /sys/kernel/debug/ufs/err_stats  Note: There is no need to enable them as they are never disabled. This error counters are something that we always would like to have."))
+out = llm.run("scsi: ufs: add debug counters for recoverable errors during runtime  There is no way to know how many times various UFS errors happened while system is running if we have successfully recovered from those errors. Those failures should be counted and inspected as they might be anomaly behavior of the driver and can impact performance. This change adds support to capture these failures statistics like how many times we have seen errors, and which type of errors.  To reset the counters: echo 1 > /sys/kernel/debug/ufs/err_stats  To print them out: cat /sys/kernel/debug/ufs/err_stats  Note: There is no need to enable them as they are never disabled. This error counters are something that we always would like to have.")
+
+# Write the output to a file
+with open('mistral.txt', 'w') as file:
+    file.write(output)
