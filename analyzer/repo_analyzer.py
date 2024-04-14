@@ -22,7 +22,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-20240402-1601'
+bucket_name = 'bucket-20240414-1634'
 
 
 MAX_COMMIT = 500  #define max number of commits to be collected, uncomment if not necessary
