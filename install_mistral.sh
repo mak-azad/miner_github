@@ -9,4 +9,4 @@ parallel-ssh -i -h sshhosts -t 0 'git clone https://huggingface.co/mistralai/Mis
 parallel-ssh -i -h sshhosts -t 0 'cd  Mistral-7B-Instruct-v0.2/ && git lfs fetch -y && git lfs pull -y'
 echo "Testing mistral...."
 sleep 5
-parallel-ssh -i -h sshhosts -t 0 'python home/ubuntu/miner_github/test_mistral7b.py' 
+python home/ubuntu/miner_github/test_mistral7b.py
