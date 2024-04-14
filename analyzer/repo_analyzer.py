@@ -364,7 +364,8 @@ def main():
     if commit_data:
         logging.info(f"Found remaining {len(commit_data)} commit rows")
         batch_id += 1
-        write_commit_data_to_file()
+        #write_commit_data_to_file()
+        write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
