@@ -12,17 +12,9 @@ import torch
 import time
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import hashlib
-import oci # for oracle object store 
-from oci.object_storage import ObjectStorageClient
-
 
 # Download the necessary NLTK models (run once)
 nltk.download('punkt')
-hostname = socket.gethostname()
-
-# OCI object store INFO
-namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-20240402-1601'
 
 
 MAX_COMMIT = 500  #define max number of commits to be collected, uncomment if not necessary
@@ -55,7 +47,7 @@ model.to(device)
 
 root_dir = "miner_github/analyzer"
 
-data_threshold = 5
+data_threshold = 500
 commit_data = [] # running commit buffer
 
 
@@ -99,7 +91,7 @@ def get_prediction(input_text):
 def get_ip_from_sshosts(sshosts_path):
     try:
         # Get the current node's hostname
-        #hostname = socket.gethostname()
+        hostname = socket.gethostname()
         with open(sshosts_path, 'r') as file:
             for line in file:
                 line_hostname, ip_address = line.strip().split()
@@ -157,60 +149,6 @@ def write_commit_data_to_file():
         for commit_info in commit_data:
             file.write(json.dumps(commit_info) + '\n')
     commit_data.clear()  # Clear the list after writing
-
-
-
-## object store code ##
-
-def get_oci_config():
-    """
-    Load the OCI configuration. Modify this function if you need to load a specific profile.
-    """
-    return oci.config.from_file()
-
-
-oci_config = get_oci_config()  # Load the OCI configuration
-
-def upload_file_to_object_storage(namespace, bucket_name, object_name, file_path, oci_config):
-    """
-    Uploads a file to Oracle Cloud Infrastructure Object Storage using streaming and deletes the file afterwards.
-    """
-    object_storage_client = ObjectStorageClient(oci_config)
-    with open(file_path, 'rb') as file: #rb for binary?
-        object_storage_client.put_object(namespace, bucket_name, object_name, file)
-        logging.info(f"Data upload completed: {object_name}")
-    
-    # Remove the file after successful upload
-    try:
-        os.remove(file_path)
-        #print(f"Successfully deleted local file: {file_path}")
-    except OSError as e:
-        logging.info(f"Error deleting file {file_path}: {e}")
-
-def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id):
-    """
-    Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
-    """
-    #hostname = socket.gethostname()
-    filename = f"{hostname}_batch_{batch_id}.jsonl"
-    file_path = os.path.join(results_dir, filename)
-    
-    try:
-        with open(file_path, 'w') as file:
-            for commit_info in commit_data:
-                file.write(json.dumps(commit_info) + '\n')
-        
-        #oci_config = get_oci_config()  # Load the OCI configuration
-        upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
-    except IOError as e:
-        logging.info(f"An error occurred while writing or uploading the file: {e}")
-    finally:
-        commit_data.clear()
-
-
-## object store code ends #$
-
-
 
 def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
     global seen_hashes
@@ -302,8 +240,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
 
                             if len(commit_data) == data_threshold:
                                 batch_id += 1
-                                #write_commit_data_to_file()
-                                write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+                                write_commit_data_to_file()
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
