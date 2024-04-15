@@ -26,6 +26,7 @@ python3 -c "import torch; print(torch.__version__)"
 sleep 5
 echo "Installing transformers.."
 pip3 install transformers
+pip3 install accelerate
 echo "Now test the model.."
 sleep 3
 python3 miner_github/test_model.py
