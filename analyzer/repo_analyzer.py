@@ -110,25 +110,30 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctim
 
 logging.info(f"Using device {device}")
 
+prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
+                    
+                    'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization or trade-off between the two. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
+                    'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
+
+                If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
+                If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement, classify the entire message as 'Yes'.
+                You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
+                
+                Commit message : ```{commit_message}``` [/INST] Model answer:  </s> '''
+
 # use the loaded model to predict classificaiton
 def get_prediction_mistral(sample_commit_message):
-    prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
-                      
-                      'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
-                      'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
-
-                    If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
-                    If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement, classify the entire message as 'Yes'.
-                    You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
-                    
-                    Commit message : ```{commit_message}``` [/INST] Model_answer:  </s> '''
     generated_prompt = prompt_template.format(commit_message=sample_commit_message)
     inputs = tokenizer.apply_chat_template(
         [{'role': 'user', 'content': generated_prompt}],
         return_tensors="pt"
     ).to(model.device)
     outputs = model.generate(inputs, max_new_tokens=5, do_sample=True)
-    return parse_output(tokenizer.decode(outputs[0], skip_special_tokens=True))
+    value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
+    if value == 'Yes':
+        return True
+    else:
+        return False
 
 
 # def get_prediction(input_text):
@@ -303,7 +308,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 commit_message = commit.msg.lower().replace('\n', ' ')
                 if len(commit_message.split()) <= 6:
                     continue
-                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message).replace('\n','').strip() == "Yes": #get_prediction(commit_message) == 'LABEL_1':
+                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message).replace('\n','').strip(): #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
