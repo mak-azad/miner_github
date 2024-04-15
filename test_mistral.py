@@ -9,10 +9,10 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
 )
 # Loading the tokenizer
-tokenizer = AutoTokenizer.from_pretrained("./Mistral-7B-Instruct-v0.2")
+tokenizer = AutoTokenizer.from_pretrained("/home/ubuntu/Mistral-7B-Instruct-v0.2")
 # Loading the model with BitsAndBytes configuration, and additional settings from Method-1
 model = AutoModelForCausalLM.from_pretrained(
-    "./Mistral-7B-Instruct-v0.2",
+    "/home/ubuntu/Mistral-7B-Instruct-v0.2",
     torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
     device_map="auto", # Automatically maps the model layers to the available devices
     trust_remote_code=True, # Allows the execution of remote code for custom model configurations
@@ -21,12 +21,19 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 
-prompt_template = '''<s>[INST] just provide 'Yes' or 'No' for whether the following commit message is implementing performance optimization or not.
-{commit_message} [/INST]</s>'''
+prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
+                      
+                      'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization or trade-off between the two. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
+                      'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
+
+                    If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
+                    If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement in terms of execution time or resource utilization., classify the entire message as 'Yes'.
+                    You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
+                    
+                    Commit message : ```{commit_message}``` [/INST] Model answer:  </s> '''
 
 
-sample_commit_message = "scsi: ufs: add debug counters for recoverable errors during runtime  There is no way to know how many times various UFS errors happened while system is running if we have successfully recovered from those errors. Those failures should be counted and inspected as they might be anomaly behavior of the driver and can impact performance. This change adds support to capture these failures statistics like how many times we have seen errors, and which type of errors.  To reset the counters: echo 1 > /sys/kernel/debug/ufs/err_stats  To print them out: cat /sys/kernel/debug/ufs/err_stats  Note: There is no need to enable them as they are never disabled. This error counters are something that we always would like to have."
-
+sample_commit_message = "the patch improves the run time at the expense of using more ram in some situations. please note: it doesn't improve the actual algorithm (iteration over all permutations). thanks to alexei sheplyakov."
 generated_prompt = prompt_template.format(commit_message=sample_commit_message)
 
 inputs = tokenizer.apply_chat_template(
@@ -36,7 +43,7 @@ inputs = tokenizer.apply_chat_template(
 
 outputs = model.generate(
         inputs, 
-        max_new_tokens=5,
+        max_new_tokens=100,
         do_sample=True)
 
 def parse_output(out):
@@ -47,5 +54,8 @@ def parse_output(out):
         return None
 
 value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
-with open('mistral.txt', 'w') as file:
-    file.write(value)
+if value == 'Yes':
+    print("Perf")
+else:
+    print("NonPerf")
+    print(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))

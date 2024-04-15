@@ -424,16 +424,18 @@ def main():
     # here we read the .csv file containg this node's split of the repo list to be mined
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
     repo_urls = read_repository_urls_from_csv(input_csv_file)
+    unique_repo_urls = list(set(repo_urls))
     #repo_urls = ['https://github.com/opencv/opencv']  # List of repository URLs to process
 
     # process all the repositories in the list
     repo_counter = 0
 
-    total_repo = len(repo_urls)
+    total_repo = len(unique_repo_urls)
     
     time_start = time.time()
-    for repo_url in repo_urls:
+    for repo_url in unique_repo_urls:
         if is_fork(repo_url) == True:
+            logging.info(f"Forked skipping")
             continue
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
