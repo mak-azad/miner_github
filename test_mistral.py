@@ -19,12 +19,7 @@ model = AutoModelForCausalLM.from_pretrained(
     #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
     quantization_config=bnb_config, # Applies the BitsAndBytes configuration
 )
-# Prepare the messages for encoding
-# messages = [
-#     {"role": "user", "content": "What is your favourite condiment?"},
-#     {"role": "assistant", "content": "Well, I'm quite partial to a good squeeze of fresh lemon juice. It adds just the right amount of zesty flavour to whatever I'm cooking up in the kitchen!"},
-#     {"role": "user", "content": "Do you have mayonnaise recipes?"}
-# ]
+
 
 prompt_template = '''<s>[INST] just provide 'Yes' or 'No' for whether the following commit message is implementing performance optimization or not.
 {commit_message} [/INST]</s>'''
@@ -43,14 +38,6 @@ outputs = model.generate(
         inputs, 
         max_new_tokens=5,
         do_sample=True)
-
-# Encode the messages using the tokenizer
-#encodeds = tokenizer.apply_chat_template(messages, return_tensors="pt").to(device)
-# Generate responses using the model
-#generated_ids = model.generate(encodeds, max_new_tokens=5, do_sample=True)
-#decoded = tokenizer.batch_decode(generated_ids)
-# Print the generated response
-#df['Mistral_result_cleaned']=df['Mistral_result'].apply(lambda x: re.search(r'\b(Yes|No)\b', x).group(0) if re.search(r'\b(Yes|No)\b', x) else None)
 
 def parse_output(out):
     res = re.search(r'\b(Yes|No)\b', out)

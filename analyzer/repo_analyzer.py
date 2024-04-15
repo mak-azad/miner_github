@@ -10,7 +10,10 @@ import requests
 import logging
 import torch
 import time
+import re
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig #mistral
+
 import hashlib
 import oci # for oracle object store 
 from oci.object_storage import ObjectStorageClient
@@ -38,18 +41,48 @@ repo_counter_fail = 0
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 cpu_count = os.cpu_count()
 
-# Load the tokenizer and model only once
 
-tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
-model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
-
-
-
+## ML Model related ##
+def parse_output(text):
+    res = re.search(r'\b(Yes|No)\b', text)
+    if res:
+        return res.group(0)
+    else:
+        return None
+    
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# ##### Roberta ########
+# # Load the tokenizer and model only once
 
-# Move model to the chosen device
-model.to(device)
+# tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
+# model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
+# # Move model to the chosen device
+# model.to(device)
+
+# #### Roberta Ends #####
+
+#### Mistral #####
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True, # Enables loading the model in 4-bit precision
+    bnb_4bit_quant_type="nf4", # Specifies the quantization type
+    bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
+)
+# Loading the tokenizer
+tokenizer = AutoTokenizer.from_pretrained("home/ubuntu/Mistral-7B-Instruct-v0.2")
+# Loading the model with BitsAndBytes configuration, and additional settings from Method-1
+model = AutoModelForCausalLM.from_pretrained(
+    "home/ubuntu/Mistral-7B-Instruct-v0.2",
+    torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
+    device_map="auto", # Automatically maps the model layers to the available devices
+    trust_remote_code=True, # Allows the execution of remote code for custom model configurations
+    #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
+    quantization_config=bnb_config, # Applies the BitsAndBytes configuration
+).to(device)
+
+
+#### Mistral Ends ####
+
 
 # root for the script
 
@@ -78,22 +111,34 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctim
 logging.info(f"Using device {device}")
 
 # use the loaded model to predict classificaiton
-def get_prediction(input_text):
-    """
-    Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
-    """
+def get_prediction_mistral(sample_commit_message):
+    prompt_template = '''<s>[INST] just provide 'Yes' or 'No' for whether the following commit message is implementing performance optimization or not.
+{commit_message} [/INST]</s>'''
+    generated_prompt = prompt_template.format(commit_message=sample_commit_message)
+    inputs = tokenizer.apply_chat_template(
+        [{'role': 'user', 'content': generated_prompt}],
+        return_tensors="pt"
+    ).to(model.device)
+    outputs = model.generate(inputs, max_new_tokens=5, do_sample=True)
+    return parse_output(tokenizer.decode(outputs[0], skip_special_tokens=True))
+
+
+# def get_prediction(input_text):
+#     """
+#     Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
+#     """
     
-    # Tokenize the input text
-    inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
-    # Move the input tensors to the same device as the model
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    with torch.no_grad():
-        logits = model(**inputs).logits
+#     # Tokenize the input text
+#     inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
+#     # Move the input tensors to the same device as the model
+#     inputs = {k: v.to(device) for k, v in inputs.items()}
+#     with torch.no_grad():
+#         logits = model(**inputs).logits
     
    
-    predicted_class_id = logits.argmax().item()
-    predicted_label = model.config.id2label[predicted_class_id]
-    return predicted_label
+#     predicted_class_id = logits.argmax().item()
+#     predicted_label = model.config.id2label[predicted_class_id]
+#     return predicted_label
 
 
 def get_ip_from_sshosts(sshosts_path):
@@ -107,6 +152,27 @@ def get_ip_from_sshosts(sshosts_path):
                     return ip_address
     except Exception as e:
         logging.error(f"Error reading from sshosts: {e}")
+        return None
+
+def is_fork(repo_url):
+    # Extract the repository's owner and name from the URL
+    parts = repo_url.split('/')
+    if len(parts) < 2:
+        return None
+    owner, repo_name = parts[-2], parts[-1]
+
+    # GitHub API endpoint for getting repo details
+    api_url = f"https://api.github.com/repos/{owner}/{repo_name}"
+
+    # Make a request to the GitHub API
+    response = requests.get(api_url)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        repo_data = response.json()
+        return repo_data.get('fork', False)
+    else:
+        logging.info(f"Failed to fetch repository data: Status code {response.status_code}")
         return None
 
 def get_public_ip(sshhosts_path='../sshhosts_hostname'):
@@ -227,29 +293,33 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
         for commit in Repository(repo_url, only_no_merge=True, only_modifications_with_file_types=file_types).traverse_commits():
             try:
                 commit_message = commit.msg.lower().replace('\n', ' ')
-                if len(commit.modified_files) == 1 and get_prediction(commit_message) == 'LABEL_1':
+                if len(commit_message.split()) <= 6:
+                    continue
+                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message) == 'Yes': #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
                         if len(modified_file.changed_methods) == 1:
-                            if 'merge' in commit_message:
+                            if 'merge' in commit_message or 'revert' in commit_message:
                                 logging.info(f"Skipping merge commit: {commit.hash}")
                                 continue
                             # get commit hash
 
                             # original source code
+                            code_diff = modified_file.diff
                             src_original = modified_file.source_code_before or "na"
                             src_modified = modified_file.source_code or "na"
                             key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
                             #deduplicate based on this
 
-                            key_hash = hashlib.sha256(key.encode('utf-8')).hexdigest()
+                            key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
                             if key_hash in seen_hashes:
                                 logging.info(f"Skipping duplicate commit: {commit.hash}")
                                 continue
                             #now proceed, extract info for this commit which met all our critera
                             # get changed method name
                             changed_method_name = modified_file.changed_methods[0].name
+                            
                             # get the commmit url
                             commit_url = repo_url
                             # get hash 
@@ -268,6 +338,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 if func.name == changed_method_name:
                                      orig_method_loc_start = func.start_line
                                      orig_method_loc_end = func.end_line
+                                     func_token = func.token_count
                                      break
                             loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
                             
@@ -276,6 +347,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                             n_loc = modified_file.nloc
                             n_added_lines = modified_file.added_lines
                             n_deleted_lines = modified_file.deleted_lines
+                            
                             # its time to concat all these info
                             commit_info = {
                                 'commit_url': commit_url + '/commit/' + commit.hash,
@@ -290,7 +362,9 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 'loc_before': loc_orig_method,
                                 'loc_after': loc_changed_method,
                                 'src_before': src_original,
-                                'src_after': src_modified
+                                'src_after': src_modified,
+                                'diff': code_diff,
+                                'func_no_tokens': func_token
                             }
                             # add this commit info to running list
                             commit_data.append(commit_info)
@@ -346,6 +420,8 @@ def main():
     
     time_start = time.time()
     for repo_url in repo_urls:
+        if is_fork(repo_url) == True:
+            continue
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
         try:
