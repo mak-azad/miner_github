@@ -70,7 +70,7 @@ git lfs pull
 cd ..
 echo "Testing mistral...."
 sleep 5
-python3 home/ubuntu/miner_github/test_mistral_7b.py
+python3 miner_github/test_mistral_7b.py
 
 #echo "Testing cloud storage.."
 #python3 miner_github/test_oci_store2.py 
