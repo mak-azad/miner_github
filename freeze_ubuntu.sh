@@ -1,6 +1,7 @@
 #!/bin/bash
 echo 'Removing unattended upgrade!'
-parallel-ssh -i -h sshosts -t 0 'sudo systemctl stop unattended-upgrades'
+parallel-ssh -i -h sshhosts -t 0 'sudo systemctl stop unattended-upgrades'
+parallel-ssh -i -h sshhosts -t 0 'sudo systemctl disable unattended-upgrades'
 parallel-ssh -i -h sshhosts -t 0 'sudo apt-get purge unattended-upgrades -y'
 echo 'Status:'
 parallel-ssh -i -h sshhosts -t 0 'sudo systemctl status unattended-upgrades.service'
