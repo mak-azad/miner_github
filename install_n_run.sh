@@ -24,6 +24,8 @@ echo "torch installation complete, checking .."
 sleep 3
 python3 -c "import torch; print(torch.__version__)"
 sleep 5
+python3 -c "import torch; print(torch.cuda.is_available())"
+sleep 10
 echo "Installing transformers.."
 pip3 install transformers
 pip3 install accelerate
