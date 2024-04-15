@@ -19,11 +19,11 @@ pip3 install oci
 echo "Installing ML related libs..."
 sleep 5
 echo "Installing pytorch.."
-pip3 install torch
+pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
 echo "torch installation complete, checking .."
 sleep 3
 python3 -c "import torch; print(torch.__version__)"
-sleep 3
+sleep 5
 echo "Installing transformers.."
 pip3 install transformers
 echo "Now test the model.."
@@ -68,14 +68,14 @@ cd  Mistral-7B-Instruct-v0.2/
 git lfs fetch 
 git lfs pull 
 cd ..
-echo "Testing mistral...."
-sleep 5
-python3 miner_github/test_mistral_7b.py
+# echo "Testing mistral...."
+# sleep 5
+# python3 miner_github/test_mistral.py
 
-#echo "Testing cloud storage.."
-#python3 miner_github/test_oci_store2.py 
-echo "Running the miner...."
-sleep 5
-python3 miner_github/analyzer/repo_analyzer.py
+# #echo "Testing cloud storage.."
+# #python3 miner_github/test_oci_store2.py 
+# echo "Running the miner...."
+# sleep 5
+# python3 miner_github/analyzer/repo_analyzer.py
 
-echo "Script execution completed at slave"
+# echo "Script execution completed at slave"
