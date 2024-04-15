@@ -1,12 +1,11 @@
-# Github Miner
-A tool to search github repositories and process information found from each of the repositories
+# Mining Tool
+## Running the tool
+- `bash check.sh`
+- `bash freeze_ubuntu.sh`
+- `bash master.sh`
 
-## Pre-requisites
-- Python `3.8+`
-- Multinode [CloudLab](https://www.cloudlab.us/) Ubuntu Cluster
 
-Note: All the linux commands are tested in Ubuntu 18.04 LTS
-
+# Outdated readme 
 ## 1. Access the master node of your cluster and configure scripts
 ### Install Python 3.8
 ```
@@ -22,13 +21,6 @@ sudo apt-get install -y python3.8-distutils && curl https://bootstrap.pypa.io/ge
 ```
 pip3 install pandas
 ```
-
-### Clone the miner scripts
-Run the cloning command
-```
-git clone https://github.com/proywm/githubMiningCuda.git
-```
-Change the directory `cd github_miner`
 
 ## 2. Fetch github repositories and export in a CSV file
 Use the following command to fetch repositories from github and export into the file `github_repositories.csv`
