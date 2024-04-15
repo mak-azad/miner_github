@@ -69,10 +69,10 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
 )
 # Loading the tokenizer
-tokenizer = AutoTokenizer.from_pretrained("home/ubuntu/Mistral-7B-Instruct-v0.2")
+tokenizer = AutoTokenizer.from_pretrained("/home/ubuntu/Mistral-7B-Instruct-v0.2")
 # Loading the model with BitsAndBytes configuration, and additional settings from Method-1
 model = AutoModelForCausalLM.from_pretrained(
-    "home/ubuntu/Mistral-7B-Instruct-v0.2",
+    "/home/ubuntu/Mistral-7B-Instruct-v0.2",
     torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
     device_map="auto", # Automatically maps the model layers to the available devices
     trust_remote_code=True, # Allows the execution of remote code for custom model configurations
