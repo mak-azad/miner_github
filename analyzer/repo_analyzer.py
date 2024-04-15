@@ -78,7 +78,7 @@ model = AutoModelForCausalLM.from_pretrained(
     trust_remote_code=True, # Allows the execution of remote code for custom model configurations
     #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
     quantization_config=bnb_config, # Applies the BitsAndBytes configuration
-).to(device)
+)
 
 
 #### Mistral Ends ####
