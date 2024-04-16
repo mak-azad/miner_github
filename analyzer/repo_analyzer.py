@@ -88,7 +88,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 root_dir = "miner_github/analyzer"
 
-data_threshold = 5
+data_threshold = 128
 commit_data = [] # running commit buffer
 
 
@@ -128,7 +128,7 @@ def get_prediction_mistral(sample_commit_message):
         [{'role': 'user', 'content': generated_prompt}],
         return_tensors="pt"
     ).to(model.device)
-    outputs = model.generate(inputs, max_new_tokens=5, do_sample=True)
+    outputs = model.generate(inputs, max_new_tokens=5, do_sample=False) # for deterministic output
     value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
     if value == 'Yes':
         return True
@@ -188,7 +188,7 @@ def is_fork(repo_url):
         logging.info(f"Failed to fetch repository data: Status code {response.status_code}")
         return None
 
-def get_public_ip(sshhosts_path='../sshhosts_hostname'):
+def get_public_ip(sshhosts_path='/home/ubuntu/miner_github/sshhosts_hostname'):
     ip_address = get_ip_from_sshosts(sshhosts_path)
     if ip_address:
         logging.info(f"fetched IP locally!")

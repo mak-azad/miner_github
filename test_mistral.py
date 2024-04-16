@@ -43,8 +43,8 @@ inputs = tokenizer.apply_chat_template(
 
 outputs = model.generate(
         inputs, 
-        max_new_tokens=100,
-        do_sample=True)
+        max_new_tokens=5,
+        do_sample=False)
 
 def parse_output(out):
     res = re.search(r'\b(Yes|No)\b', out)
