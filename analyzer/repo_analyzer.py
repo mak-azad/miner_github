@@ -308,7 +308,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 commit_message = commit.msg.lower().replace('\n', ' ')
                 if len(commit_message.split()) <= 6:
                     continue
-                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message).replace('\n','').strip(): #get_prediction(commit_message) == 'LABEL_1':
+                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:

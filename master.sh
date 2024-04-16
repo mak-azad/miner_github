@@ -43,7 +43,7 @@ echo "Cloning repo to all nodes home directory"
 parallel-ssh -i -h sshhosts 'git clone https://github.com/mak-azad/miner_github.git'
 
 echo "Spliting task to all nodes..."
-python3 task_parallelizer.py repository_lists/repo.csv ubuntu
+python3 task_parallelizer.py repository_lists/github_repositories_C++_12232023.csv ubuntu
 echo "Running miner on cluster...."
 sleep 5
 parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
