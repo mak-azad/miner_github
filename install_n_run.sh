@@ -75,10 +75,10 @@ echo "Testing mistral...."
 sleep 5
 python3 miner_github/test_mistral.py
 
-#echo "Testing cloud storage.."
-#python3 miner_github/test_oci_store2.py 
-echo "Running the miner...."
-sleep 5
-python3 miner_github/analyzer/repo_analyzer.py
+# #echo "Testing cloud storage.."
+# #python3 miner_github/test_oci_store2.py 
+# echo "Running the miner...."
+# sleep 5
+# python3 miner_github/analyzer/repo_analyzer.py
 
-echo "Script execution completed at slave"
+# echo "Script execution completed at slave"
