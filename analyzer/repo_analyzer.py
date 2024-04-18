@@ -268,11 +268,12 @@ def upload_file_to_object_storage(namespace, bucket_name, object_name, file_path
         logging.error(f"Failed to upload file {file_path} due to: {e}")
 
 
-def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir, batch_id):
+def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
     global commit_data
+    global batch_id
     #hostname = socket.gethostname()
     filename = f"{hostname}_batch_{batch_id}_perf.jsonl"
     file_path = os.path.join(results_dir, filename)
@@ -288,16 +289,18 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir, ba
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
+        logging.info(f"PERF: uploading complete!")
 
 # for nonperf commit data write
-def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir, batch_id):
+def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir):
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
     global commit_data_nperf
+    global batch_id_nperf
 
     #hostname = socket.gethostname()
-    filename = f"{hostname}_batch_{batch_id}_nperf.jsonl"
+    filename = f"{hostname}_batch_{batch_id_nperf}_nperf.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -311,6 +314,7 @@ def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_d
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data_nperf.clear()
+        logging.info(f"NPERF: uploading complete!")
 
 
 ## object store code ends #$
@@ -320,6 +324,7 @@ def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_d
 def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
     global seen_hashes
     global batch_id
+    global batch_id_nperf
     global total_found
     global total_found_nperf
     global commit_data
@@ -388,7 +393,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
                                 
                                 #get tokens in file
-                                file_tokens = modified_file.token_count
+                                #file_tokens = modified_file.token_count
                                 n_loc = modified_file.nloc
                                 n_added_lines = modified_file.added_lines
                                 n_deleted_lines = modified_file.deleted_lines
@@ -399,7 +404,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                     'commit_message': commit_message,
                                     'filename': filename,
                                     'commit_date': str(commit.committer_date),
-                                    'no_tokens': file_tokens,
+                                    #'no_tokens': file_tokens,
                                     'nloc': n_loc,
                                     'n_added_lines': n_added_lines,
                                     'n_deleted_lines': n_deleted_lines,
@@ -417,12 +422,12 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 seen_hashes.add(key_hash)
                                 total_found += 1
                                 local_commit_counter += 1
-                                logging.info(f"Total found: {total_found}")
+                                logging.info(f"Total perf found: {total_found}")
 
                                 if len(commit_data) == data_threshold:
                                     batch_id += 1
                                     #write_commit_data_to_file()
-                                    write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+                                    write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
                             else:
                                 if 'merge' in commit_message or 'revert' in commit_message:
                                     logging.info(f"Skipping merge commit: {commit.hash}")
@@ -467,7 +472,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
                                 
                                 #get tokens in file
-                                file_tokens = modified_file.token_count
+                                #file_tokens = modified_file.token_count
                                 n_loc = modified_file.nloc
                                 n_added_lines = modified_file.added_lines
                                 n_deleted_lines = modified_file.deleted_lines
@@ -478,7 +483,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                     'commit_message': commit_message,
                                     'filename': filename,
                                     'commit_date': str(commit.committer_date),
-                                    'no_tokens': file_tokens,
+                                    #'no_tokens': file_tokens,
                                     'nloc': n_loc,
                                     'n_added_lines': n_added_lines,
                                     'n_deleted_lines': n_deleted_lines,
@@ -496,12 +501,12 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                 seen_hashes.add(key_hash)
                                 total_found_nperf += 1
                                 local_commit_counter_nperf += 1
-                                logging.info(f"Total found: {total_found_nperf}")
+                                logging.info(f"Total nperf found: {total_found_nperf}")
 
                                 if len(commit_data_nperf) == data_threshold:
                                     batch_id_nperf += 1
                                     #write_commit_data_to_file()
-                                    write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, commit_data_nperf, results_dir, batch_id_nperf)
+                                    write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
 
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
@@ -518,7 +523,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
         end_time = time.time()  # End time for the current repository
         time_taken = end_time - start_time
         logging.info(f"Time taken for processing {repo_url}: {time_taken} seconds")
-        logging.info(f"local_commit_found: {local_commit_counter} {repo_url}")
+        logging.info(f"local_commit_found (perf/nperf):{local_commit_counter}/{local_commit_counter_nperf}: {repo_url}")
 
 
 
