@@ -3,7 +3,7 @@
 - `bash check.sh`
 - `bash freeze_ubuntu.sh`
 - `bash master.sh`
-
+- `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/repo_analyzer.py &'`
 
 # Outdated readme 
 ## 1. Access the master node of your cluster and configure scripts
