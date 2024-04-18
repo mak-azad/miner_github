@@ -28,12 +28,14 @@ namespace = 'idqgqghww6tn'
 bucket_name = 'bucket-20240414-1634'
 
 
-MAX_COMMIT = 500  #define max number of commits to be collected, uncomment if not necessary
+MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
 
 # Initialize a global batch_id
 batch_id = 0
+batch_id_nperf = 0
 seen_hashes = set()
 total_found = 0
+total_found_nperf = 0
 repo_counter_success = 0
 repo_counter_fail = 0
 
@@ -88,9 +90,9 @@ model = AutoModelForCausalLM.from_pretrained(
 
 root_dir = "miner_github/analyzer"
 
-data_threshold = 128
+data_threshold = 250
 commit_data = [] # running commit buffer
-
+commit_data_nperf = []
 
 # def setup_logging():
 #     '''
@@ -255,23 +257,24 @@ def upload_file_to_object_storage(namespace, bucket_name, object_name, file_path
     Uploads a file to Oracle Cloud Infrastructure Object Storage using streaming and deletes the file afterwards.
     """
     object_storage_client = ObjectStorageClient(oci_config)
-    with open(file_path, 'rb') as file: #rb for binary?
-        object_storage_client.put_object(namespace, bucket_name, object_name, file)
-        logging.info(f"Data upload completed: {object_name}")
-    
-    # Remove the file after successful upload
-    try:
-        os.remove(file_path)
-        #print(f"Successfully deleted local file: {file_path}")
-    except OSError as e:
-        logging.info(f"Error deleting file {file_path}: {e}")
 
-def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id):
+    try:
+        with open(file_path, 'rb') as file:
+            object_storage_client.put_object(namespace, bucket_name, object_name, file)
+            logging.info(f"Data upload completed: {object_name}")
+            os.remove(file_path)  # Remove the file after successful upload
+            logging.info(f"Successfully deleted local file: {file_path}")
+    except Exception as e:  # Catch any exception during upload or file handling
+        logging.error(f"Failed to upload file {file_path} due to: {e}")
+
+
+def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir, batch_id):
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
+    global commit_data
     #hostname = socket.gethostname()
-    filename = f"{hostname}_batch_{batch_id}.jsonl"
+    filename = f"{hostname}_batch_{batch_id}_perf.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -286,6 +289,29 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, re
     finally:
         commit_data.clear()
 
+# for nonperf commit data write
+def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir, batch_id):
+    """
+    Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
+    """
+    global commit_data_nperf
+
+    #hostname = socket.gethostname()
+    filename = f"{hostname}_batch_{batch_id}_nperf.jsonl"
+    file_path = os.path.join(results_dir, filename)
+    
+    try:
+        with open(file_path, 'w') as file:
+            for commit_info in commit_data_nperf:
+                file.write(json.dumps(commit_info) + '\n')
+        
+        #oci_config = get_oci_config()  # Load the OCI configuration
+        upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
+    except IOError as e:
+        logging.info(f"An error occurred while writing or uploading the file: {e}")
+    finally:
+        commit_data_nperf.clear()
+
 
 ## object store code ends #$
 
@@ -295,11 +321,14 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
     global seen_hashes
     global batch_id
     global total_found
+    global total_found_nperf
     global commit_data
+    global commit_data_nperf
     global data_threshold
     global repo_counter_fail
     global repo_counter_success
     local_commit_counter = 0
+    local_commit_counter_nperf = 0
     start_time = time.time()  # Record the start time for the current repository
 
     try:
@@ -308,89 +337,172 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 commit_message = commit.msg.lower().replace('\n', ' ')
                 if len(commit_message.split()) <= 6:
                     continue
-                if len(commit.modified_files) == 1 and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
+                if len(commit.modified_files) == 1: # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
-                        if len(modified_file.changed_methods) == 1:
-                            if 'merge' in commit_message or 'revert' in commit_message:
-                                logging.info(f"Skipping merge commit: {commit.hash}")
-                                continue
-                            # get commit hash
+                        no_modified_method = len(modified_file.changed_methods)
+                        if  no_modified_method == 1:
+                            pred = get_prediction_mistral(commit_message)
+                            if pred == True:
+                                if 'merge' in commit_message or 'revert' in commit_message:
+                                    logging.info(f"Skipping merge commit: {commit.hash}")
+                                    continue
+                                # get commit hash
 
-                            # original source code
-                            code_diff = modified_file.diff
-                            src_original = modified_file.source_code_before or "na"
-                            src_modified = modified_file.source_code or "na"
-                            key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
-                            #deduplicate based on this
+                                # original source code
+                                code_diff = modified_file.diff
+                                src_original = modified_file.source_code_before or "na"
+                                src_modified = modified_file.source_code or "na"
+                                key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
+                                #deduplicate based on this
 
-                            key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
-                            if key_hash in seen_hashes:
-                                logging.info(f"Skipping duplicate commit: {commit.hash}")
-                                continue
-                            #now proceed, extract info for this commit which met all our critera
-                            # get changed method name
-                            changed_method_name = modified_file.changed_methods[0].name
-                            
-                            # get the commmit url
-                            commit_url = repo_url
-                            # get hash 
-                            sha = commit.hash
-                            # get filename
-                            filename = modified_file.filename
-                            # get changed method's location
-                            changed_method_loc_start = modified_file.changed_methods[0].start_line
-                            changed_method_loc_end = modified_file.changed_methods[0].end_line
-                            loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
-                            # get the list of methods in this file
-                            methods = modified_file.methods_before
-                            # now iterate through these methods to extract original version
-                            # of the changed_method
-                            for func in methods:
-                                if func.name == changed_method_name:
-                                     orig_method_loc_start = func.start_line
-                                     orig_method_loc_end = func.end_line
-                                     func_token = func.token_count
-                                     break
-                            loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
-                            
-                            #get tokens in file
-                            file_tokens = modified_file.token_count
-                            n_loc = modified_file.nloc
-                            n_added_lines = modified_file.added_lines
-                            n_deleted_lines = modified_file.deleted_lines
-                            
-                            # its time to concat all these info
-                            commit_info = {
-                                'commit_url': commit_url + '/commit/' + commit.hash,
-                                'commit_message': commit_message,
-                                'filename': filename,
-                                'commit_date': str(commit.committer_date),
-                                'no_tokens': file_tokens,
-                                'nloc': n_loc,
-                                'n_added_lines': n_added_lines,
-                                'n_deleted_lines': n_deleted_lines,
-                                'modified_method': changed_method_name,
-                                'loc_before': loc_orig_method,
-                                'loc_after': loc_changed_method,
-                                'src_before': src_original,
-                                'src_after': src_modified,
-                                'diff': code_diff,
-                                'func_no_tokens': func_token
-                            }
-                            # add this commit info to running list
-                            commit_data.append(commit_info)
-                            # mark it seen to avoid duplicate
-                            seen_hashes.add(key_hash)
-                            total_found += 1
-                            local_commit_counter += 1
-                            logging.info(f"Total found: {total_found}")
+                                key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
+                                if key_hash in seen_hashes:
+                                    logging.info(f"Skipping duplicate commit: {commit.hash}")
+                                    continue
+                                #now proceed, extract info for this commit which met all our critera
+                                # get changed method name
+                                changed_method_name = modified_file.changed_methods[0].name
+                                
+                                # get the commmit url
+                                commit_url = repo_url
+                                # get hash 
+                                sha = commit.hash
+                                # get filename
+                                filename = modified_file.filename
+                                # get changed method's location
+                                changed_method_loc_start = modified_file.changed_methods[0].start_line
+                                changed_method_loc_end = modified_file.changed_methods[0].end_line
+                                loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
+                                # get the list of methods in this file
+                                methods = modified_file.methods_before
+                                # now iterate through these methods to extract original version
+                                # of the changed_method
+                                for func in methods:
+                                    if func.name == changed_method_name:
+                                        orig_method_loc_start = func.start_line
+                                        orig_method_loc_end = func.end_line
+                                        func_token = func.token_count
+                                        break
+                                loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
+                                
+                                #get tokens in file
+                                file_tokens = modified_file.token_count
+                                n_loc = modified_file.nloc
+                                n_added_lines = modified_file.added_lines
+                                n_deleted_lines = modified_file.deleted_lines
+                                
+                                # its time to concat all these info
+                                commit_info = {
+                                    'commit_url': commit_url + '/commit/' + commit.hash,
+                                    'commit_message': commit_message,
+                                    'filename': filename,
+                                    'commit_date': str(commit.committer_date),
+                                    'no_tokens': file_tokens,
+                                    'nloc': n_loc,
+                                    'n_added_lines': n_added_lines,
+                                    'n_deleted_lines': n_deleted_lines,
+                                    'modified_method': changed_method_name,
+                                    'loc_before': loc_orig_method,
+                                    'loc_after': loc_changed_method,
+                                    'src_before': src_original,
+                                    'src_after': src_modified,
+                                    'diff': code_diff,
+                                    'func_no_tokens': func_token
+                                }
+                                # add this commit info to running list
+                                commit_data.append(commit_info)
+                                # mark it seen to avoid duplicate
+                                seen_hashes.add(key_hash)
+                                total_found += 1
+                                local_commit_counter += 1
+                                logging.info(f"Total found: {total_found}")
 
-                            if len(commit_data) == data_threshold:
-                                batch_id += 1
-                                #write_commit_data_to_file()
-                                write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+                                if len(commit_data) == data_threshold:
+                                    batch_id += 1
+                                    #write_commit_data_to_file()
+                                    write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+                            else:
+                                if 'merge' in commit_message or 'revert' in commit_message:
+                                    logging.info(f"Skipping merge commit: {commit.hash}")
+                                    continue
+                                # get commit hash
+
+                                # original source code
+                                code_diff = modified_file.diff
+                                src_original = modified_file.source_code_before or "na"
+                                src_modified = modified_file.source_code or "na"
+                                key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
+                                #deduplicate based on this
+
+                                key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
+                                if key_hash in seen_hashes:
+                                    logging.info(f"Skipping duplicate commit: {commit.hash}")
+                                    continue
+                                #now proceed, extract info for this commit which met all our critera
+                                # get changed method name
+                                changed_method_name = modified_file.changed_methods[0].name
+                                
+                                # get the commmit url
+                                commit_url = repo_url
+                                # get hash 
+                                sha = commit.hash
+                                # get filename
+                                filename = modified_file.filename
+                                # get changed method's location
+                                changed_method_loc_start = modified_file.changed_methods[0].start_line
+                                changed_method_loc_end = modified_file.changed_methods[0].end_line
+                                loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
+                                # get the list of methods in this file
+                                methods = modified_file.methods_before
+                                # now iterate through these methods to extract original version
+                                # of the changed_method
+                                for func in methods:
+                                    if func.name == changed_method_name:
+                                        orig_method_loc_start = func.start_line
+                                        orig_method_loc_end = func.end_line
+                                        func_token = func.token_count
+                                        break
+                                loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
+                                
+                                #get tokens in file
+                                file_tokens = modified_file.token_count
+                                n_loc = modified_file.nloc
+                                n_added_lines = modified_file.added_lines
+                                n_deleted_lines = modified_file.deleted_lines
+                                
+                                # its time to concat all these info
+                                commit_info = {
+                                    'commit_url': commit_url + '/commit/' + commit.hash,
+                                    'commit_message': commit_message,
+                                    'filename': filename,
+                                    'commit_date': str(commit.committer_date),
+                                    'no_tokens': file_tokens,
+                                    'nloc': n_loc,
+                                    'n_added_lines': n_added_lines,
+                                    'n_deleted_lines': n_deleted_lines,
+                                    'modified_method': changed_method_name,
+                                    'loc_before': loc_orig_method,
+                                    'loc_after': loc_changed_method,
+                                    'src_before': src_original,
+                                    'src_after': src_modified,
+                                    'diff': code_diff,
+                                    'func_no_tokens': func_token
+                                }
+                                # add this commit info to running list
+                                commit_data_nperf.append(commit_info)
+                                # mark it seen to avoid duplicate
+                                seen_hashes.add(key_hash)
+                                total_found_nperf += 1
+                                local_commit_counter_nperf += 1
+                                logging.info(f"Total found: {total_found_nperf}")
+
+                                if len(commit_data_nperf) == data_threshold:
+                                    batch_id_nperf += 1
+                                    #write_commit_data_to_file()
+                                    write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, commit_data_nperf, results_dir, batch_id_nperf)
+
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
@@ -412,8 +524,11 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
 
 def main():
     global batch_id
+    global batch_id_nperf
     global total_found
+    global total_found_nperf
     global commit_data
+    global commit_data_nperf
     global repo_counter_fail
     global repo_counter_success
     logging.info("Starting mining..")
@@ -457,6 +572,12 @@ def main():
         batch_id += 1
         #write_commit_data_to_file()
         write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+        #remaining data if any
+    if commit_data_nperf:
+        logging.info(f"Found remaining {len(commit_data_nperf)} commit rows")
+        batch_id_nperf += 1
+        #write_commit_data_to_file()
+        write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, commit_data_nperf, results_dir, batch_id_nperf)
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
@@ -466,7 +587,8 @@ def main():
     logging.info(f"Total repository: {total_repo}")
     logging.info(f"Total successfully processed: {repo_counter_success}")
     logging.info(f"Total failed to process: {repo_counter_fail}")
-    logging.info(f"Total commit curated: {total_found}")
+    logging.info(f"Total perf commit curated: {total_found}")
+    logging.info(f"Total nperf commit curated: {total_found_nperf}")
     logging.info(f"Total time taken: {int(minutes)}")
     # Command to execute
     command = 'touch miner_github/analyzer/script_complete.txt'
