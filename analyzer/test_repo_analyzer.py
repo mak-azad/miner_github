@@ -328,7 +328,10 @@ def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_d
 
 
 
-def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
+# python ['.py']
+# c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
+
+def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
     global batch_id
     global batch_id_nperf
