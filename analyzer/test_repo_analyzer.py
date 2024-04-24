@@ -279,7 +279,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
     global commit_data
     global batch_id
     #hostname = socket.gethostname()
-    filename = f"test_{hostname}_batch_{batch_id}_perf.jsonl"
+    filename = f"python_{hostname}_batch_{batch_id}_perf.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -307,7 +307,7 @@ def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_d
     global batch_id_nperf
 
     #hostname = socket.gethostname()
-    filename = f"test_{hostname}_batch_{batch_id_nperf}_nperf.jsonl"
+    filename = f"python_{hostname}_batch_{batch_id_nperf}_nperf.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
