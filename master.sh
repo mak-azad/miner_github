@@ -46,7 +46,7 @@ echo "Spliting task to all nodes..."
 python3 task_parallelizer.py repository_lists/github_repositories_C_12222023.csv ubuntu
 echo "Running miner on cluster...."
 sleep 5
-parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
+#parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
 
 echo "Script execution completed at master"
 

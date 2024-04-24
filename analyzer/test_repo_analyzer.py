@@ -1,5 +1,6 @@
 import socket
 from pydriller import Repository
+import pandas as pd
 from tqdm import tqdm
 import nltk
 import csv
@@ -521,9 +522,11 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 # Continue to the next commit despite the error
                 continue
         repo_counter_success += 1
+        return True
     except Exception as repo_error:
         repo_counter_fail += 1
         logging.error(f"Error while accessing repository '{repo_url}': {repo_error}")
+        return False
         
         # Continue to the next repository despite the error
 
@@ -551,6 +554,9 @@ def main():
     
     # here we read the .csv file containg this node's split of the repo list to be mined
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
+    # create df frame
+    df = pd.read_csv(input_csv_file)
+    logging.info(f"CSV loaded into df!")
     repo_urls = read_repository_urls_from_csv(input_csv_file)
     unique_repo_urls = list(set(repo_urls))
     #repo_urls = ['https://github.com/opencv/opencv']  # List of repository URLs to process
@@ -560,19 +566,40 @@ def main():
 
     total_repo = len(unique_repo_urls)
     
+    if 'processed' not in df.columns:
+        df['processed'] = False
+        logging.info(f"processed columnd added to csv")
+    df.to_csv(input_csv_file, index=False)
+    logging.info(f"CSV file updated!")
+
+
     time_start = time.time()
-    for repo_url in unique_repo_urls:
+    #for repo_url in unique_repo_urls:
+    for index, row in df.iterrows():
+        repo_url = row['url']
+
+        if row['processed']:
+            logging.info(f"Skipping already processed repo: {repo_url}")
+            continue
+
         if is_fork(repo_url) == True:
             logging.info(f"Forked skipping")
             continue
+
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
-        try:
-            #analyze_repository(repo_url, output_csv_file_patterns1)
-            mine_repo_commits(repo_url)
-        except Exception as e:
-            logging.error(f"Error processing this repository, continueing {repo_url}: {e}")
-            continue
+        
+        # call miner function
+        result = mine_repo_commits(repo_url) 
+
+        df.at[index, 'processed'] = result
+        df.to_csv(input_csv_file,index=False)
+        logging.info(f"Updated csv file with current repo status!")
+
+        if not result:
+            logging.info(f"Failed to process repo: {repo_url}")
+
+
         # if total_found > MAX_COMMIT:
         #     logging.info("Exiting analysis!")
         #     break
