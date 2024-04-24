@@ -90,7 +90,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 # root for the script
 
-root_dir = "tmp/analyzer"
+root_dir = "miner_github/analyzer"
 
 data_threshold = 250
 commit_data = [] # running commit buffer
