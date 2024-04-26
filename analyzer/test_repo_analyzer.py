@@ -583,6 +583,7 @@ def main():
 
         if row['processed']:
             logging.info(f"Skipping already processed repo: {repo_url}")
+            batch_id = batch_id_nperf = 1000000
             continue
 
         if is_fork(repo_url) == True:
@@ -614,13 +615,13 @@ def main():
         logging.info(f"Found remaining {len(commit_data)} commit rows")
         batch_id += 1
         #write_commit_data_to_file()
-        write_commit_data_to_file_and_upload(namespace, bucket_name, commit_data, results_dir, batch_id)
+        write_commit_data_to_file_and_upload(namespace, bucket_name,results_dir)
         #remaining data if any
     if commit_data_nperf:
         logging.info(f"Found remaining {len(commit_data_nperf)} commit rows")
         batch_id_nperf += 1
         #write_commit_data_to_file()
-        write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, commit_data_nperf, results_dir, batch_id_nperf)
+        write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
@@ -634,7 +635,7 @@ def main():
     logging.info(f"Total nperf commit curated: {total_found_nperf}")
     logging.info(f"Total time taken: {int(minutes)}")
     # Command to execute
-    command = 'touch tmp/analyzer/script_complete.txt'
+    command = 'touch miner_github/analyzer/script_complete.txt'
 
     # Execute the command
     result = os.system(command)
