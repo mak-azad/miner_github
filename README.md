@@ -3,7 +3,8 @@
 - `bash check.sh`
 - `bash freeze_ubuntu.sh`
 - `bash master.sh`
-- `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/repo_analyzer.py &'`
+- `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/test_repo_analyzer.py > /dev/null 2> error_log.txt || echo "Command failed on $(hostname)" >> error_log.txt'`
+- `nvidia-smi --query-gpu=name,utilization.gpu,utilization.memory,memory.total,memory.used --format=csv -l 5 > gpu_usage.log`
 
 # Outdated readme 
 ## 1. Access the master node of your cluster and configure scripts
