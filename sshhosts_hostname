@@ -2,4 +2,4 @@ leader-node 132.145.133.22
 worker-pool-host-1 150.136.222.123
 worker-pool-host-2 129.213.94.74
 worker-pool-host-3 132.145.134.8
-150.136.69.21
+worker-pool-host-3 150.136.69.21

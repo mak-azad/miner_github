@@ -635,13 +635,27 @@ def main():
             #batch_id = batch_id_nperf = 1000000
             continue
         #get meta data size is_fork
-        meta_data = get_info(repo_url)
-        if meta_data['fork'] == True:
-            logging.info(f"Forked skipping")
-            continue
-        if int(meta_data['size']) > 2e6:
-            logging.info(f"LargeFile! Skipping")
-            continue
+        
+        try:
+            meta_data = get_info(repo_url)
+            if meta_data is not None:
+                #print("Successfully retrieved metadata:", meta_data)
+                # You can access the dictionary as expected
+                fork_status = meta_data["fork"]
+                repo_size = meta_data["size"]
+                #print(f"Fork: {fork_status}, Size: {repo_size} kB")
+                if fork_status == True:
+                    logging.info(f"Forked skipping")
+                    continue
+                if int(repo_size) > 2e6:
+                    logging.info(f"LargeFile! Skipping")
+                    continue
+            else:
+                # Handle the case where no data was returned
+                logging.info(f"No metadata could be retrieved.")
+        except Exception as e:
+            logging.info(f"An error occurred while fetching the metadata: {e}")
+        #meta_data = get_info(repo_url)
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
         
