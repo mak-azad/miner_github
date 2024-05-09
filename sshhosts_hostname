@@ -1,16 +1,5 @@
 leader-node 132.145.133.22
-worker-host-12 150.136.213.25
-worker-host-11 132.145.199.82
-worker-host-15 193.122.154.67
-worker-host-1 129.213.89.107
-worker-host-10 193.122.153.80
-worker-host-14 129.213.17.28
-worker-host-4 129.213.24.176
-worker-host-13 132.145.134.196
-worker-host-2 129.213.90.17
-worker-host-6 150.136.115.209
-worker-host-5 132.145.143.62
-worker-host-9 150.136.36.179
-worker-host-8 129.213.16.151
-worker-host-3 150.136.118.225
-worker-host-7 150.136.213.73
+worker-pool-host-1 150.136.222.123
+worker-pool-host-2 129.213.94.74
+worker-pool-host-3 132.145.134.8
+150.136.69.21
