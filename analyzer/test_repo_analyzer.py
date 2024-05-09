@@ -27,14 +27,14 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-20240414-1634'
+bucket_name = 'bucket-lang-c-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
 
 # Initialize a global batch_id
 batch_id = 0
-batch_id_nperf = 0
+batch_id_url = 0
 seen_hashes = set()
 total_found = 0
 total_found_nperf = 0
@@ -56,33 +56,33 @@ def parse_output(text):
     
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# ##### Roberta ########
-# # Load the tokenizer and model only once
+##### Roberta ########
+# Load the tokenizer and model only once
 
-# tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
-# model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/Research_paper_MLM_all_CGO_Level_2_Final_Model_V1")
-# # Move model to the chosen device
-# model.to(device)
+tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/final_roberta_with_new_400k_plus_37k_Best")
+model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/final_roberta_with_new_400k_plus_37k_Best")
+# Move model to the chosen device
+model.to(device)
 
 # #### Roberta Ends #####
 
-#### Mistral #####
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True, # Enables loading the model in 4-bit precision
-    bnb_4bit_quant_type="nf4", # Specifies the quantization type
-    bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
-)
-# Loading the tokenizer
-tokenizer = AutoTokenizer.from_pretrained("/home/ubuntu/Mistral-7B-Instruct-v0.2")
-# Loading the model with BitsAndBytes configuration, and additional settings from Method-1
-model = AutoModelForCausalLM.from_pretrained(
-    "/home/ubuntu/Mistral-7B-Instruct-v0.2",
-    torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
-    device_map="auto", # Automatically maps the model layers to the available devices
-    trust_remote_code=True, # Allows the execution of remote code for custom model configurations
-    #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
-    quantization_config=bnb_config, # Applies the BitsAndBytes configuration
-)
+# #### Mistral #####
+# bnb_config = BitsAndBytesConfig(
+#     load_in_4bit=True, # Enables loading the model in 4-bit precision
+#     bnb_4bit_quant_type="nf4", # Specifies the quantization type
+#     bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
+# )
+# # Loading the tokenizer
+# tokenizer = AutoTokenizer.from_pretrained("/home/ubuntu/Mistral-7B-Instruct-v0.2")
+# # Loading the model with BitsAndBytes configuration, and additional settings from Method-1
+# model = AutoModelForCausalLM.from_pretrained(
+#     "/home/ubuntu/Mistral-7B-Instruct-v0.2",
+#     torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
+#     device_map="auto", # Automatically maps the model layers to the available devices
+#     trust_remote_code=True, # Allows the execution of remote code for custom model configurations
+#     #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
+#     quantization_config=bnb_config, # Applies the BitsAndBytes configuration
+# )
 
 
 #### Mistral Ends ####
@@ -94,7 +94,7 @@ root_dir = "miner_github/analyzer"
 
 data_threshold = 250
 commit_data = [] # running commit buffer
-commit_data_nperf = []
+commit_data_url = []
 
 # def setup_logging():
 #     '''
@@ -114,50 +114,50 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctim
 
 logging.info(f"Using device {device}")
 
-prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
+# prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
                     
-                    'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization or trade-off between the two. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
-                    'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
+#                     'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization or trade-off between the two. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
+#                     'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
 
-                If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
-                If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement, classify the entire message as 'Yes'.
-                You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
+#                 If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
+#                 If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement, classify the entire message as 'Yes'.
+#                 You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
                 
-                Commit message : ```{commit_message}``` [/INST] Model answer:  </s> '''
+#                 Commit message : ```{commit_message}``` [/INST] Model answer:  </s> '''
 
 # use the loaded model to predict classificaiton
-def get_prediction_mistral(sample_commit_message):
-    generated_prompt = prompt_template.format(commit_message=sample_commit_message)
-    inputs = tokenizer.apply_chat_template(
-        [{'role': 'user', 'content': generated_prompt}],
-        return_tensors="pt",
-        truncation=True,
-        max_length =4097 
-    ).to(model.device)
-    outputs = model.generate(inputs, max_new_tokens=5, do_sample=False) # for deterministic output
-    value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
-    if value == 'Yes':
-        return True
-    else:
-        return False
+# def get_prediction_mistral(sample_commit_message):
+#     generated_prompt = prompt_template.format(commit_message=sample_commit_message)
+#     inputs = tokenizer.apply_chat_template(
+#         [{'role': 'user', 'content': generated_prompt}],
+#         return_tensors="pt",
+#         truncation=True,
+#         max_length =4097 
+#     ).to(model.device)
+#     outputs = model.generate(inputs, max_new_tokens=5, do_sample=False) # for deterministic output
+#     value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
+#     if value == 'Yes':
+#         return True
+#     else:
+#         return False
 
 
-# def get_prediction(input_text):
-#     """
-#     Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
-#     """
+def get_prediction(input_text):
+    """
+    Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
+    """
     
-#     # Tokenize the input text
-#     inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
-#     # Move the input tensors to the same device as the model
-#     inputs = {k: v.to(device) for k, v in inputs.items()}
-#     with torch.no_grad():
-#         logits = model(**inputs).logits
+    # Tokenize the input text
+    inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
+    # Move the input tensors to the same device as the model
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        logits = model(**inputs).logits
     
    
-#     predicted_class_id = logits.argmax().item()
-#     predicted_label = model.config.id2label[predicted_class_id]
-#     return predicted_label
+    predicted_class_id = logits.argmax().item()
+    predicted_label = model.config.id2label[predicted_class_id]
+    return predicted_label == 'LABEL_1'
 
 
 def get_ip_from_sshosts(sshosts_path):
@@ -173,7 +173,8 @@ def get_ip_from_sshosts(sshosts_path):
         logging.error(f"Error reading from sshosts: {e}")
         return None
 
-def is_fork(repo_url):
+
+def get_info(repo_url):
     # Extract the repository's owner and name from the URL
     parts = repo_url.split('/')
     if len(parts) < 2:
@@ -189,7 +190,10 @@ def is_fork(repo_url):
     # Check if the request was successful
     if response.status_code == 200:
         repo_data = response.json()
-        return repo_data.get('fork', False)
+        # return repo_data.get('fork', False)
+        fork = repo_data.get('fork', False)
+        size = repo_data.get('size', 0)
+        return { "fork": fork, "size": size}
     else:
         logging.info(f"Failed to fetch repository data: Status code {response.status_code}")
         return None
@@ -279,7 +283,12 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
     global commit_data
     global batch_id
     #hostname = socket.gethostname()
-    filename = f"python_{hostname}_batch_{batch_id}_perf.jsonl"
+    # Get the current date and time
+    now = datetime.datetime.now()
+
+    # Format the date and time to include year, month, day, hour, minute, and second
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    filename = f"CPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -293,26 +302,31 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
-        logging.info(f"PERF: uploading complete!")
+        logging.info(f"PERF{batch_id}: uploading complete!")
         # garbage collect and emtpy cache
         torch.cuda.empty_cache()
         gc.collect()
 
 # for nonperf commit data write
-def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir):
+def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir):
     """
     Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
     """
-    global commit_data_nperf
-    global batch_id_nperf
+    global commit_data_url
+    global batch_id_url
 
     #hostname = socket.gethostname()
-    filename = f"python_{hostname}_batch_{batch_id_nperf}_nperf.jsonl"
+       # Get the current date and time
+    now = datetime.datetime.now()
+
+    # Format the date and time to include year, month, day, hour, minute, and second
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    filename = f"CPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
         with open(file_path, 'w') as file:
-            for commit_info in commit_data_nperf:
+            for commit_info in commit_data_url:
                 file.write(json.dumps(commit_info) + '\n')
         
         #oci_config = get_oci_config()  # Load the OCI configuration
@@ -320,25 +334,33 @@ def write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_d
     except IOError as e:
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
-        commit_data_nperf.clear()
+        commit_data_url.clear()
         logging.info(f"NPERF: uploading complete!")
 
 
 ## object store code ends #$
 
+# regex to clean commit message
 
+fixes_re = re.compile("fix(es)?\\s+#\\d+", re.I)
+merge_re0 = re.compile("merge pull request[^\\n]+", re.I)
+merge_re1 = re.compile("Merge (remote-tracking )?branch[^\\n]+", re.I)
+sign_re0 = re.compile("(Signed-off-by|Reviewed-By|Change-Id):[^\\n]+", re.I)
+git_svn_re0 = re.compile("git-svn-id:[^\\n]+", re.I)
+bot_re0 = re.compile("(.|\n)*dependabot(.|\n)*", re.I)
+ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.py']):
+def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
     global seen_hashes
     global batch_id
     global batch_id_nperf
     global total_found
     global total_found_nperf
     global commit_data
-    global commit_data_nperf
+    global commit_data_url
     global data_threshold
     global repo_counter_fail
     global repo_counter_success
@@ -348,19 +370,31 @@ def mine_repo_commits(repo_url, file_types=['.py']):
 
     try:
         for commit in Repository(repo_url, only_no_merge=True, only_modifications_with_file_types=file_types).traverse_commits():
-            try:
-                commit_message = commit.msg.lower().replace('\n', ' ')
+            try: 
+                commit_message = commit.msg
+                # clean data please
+                commit_message = fixes_re.sub("", commit_message)
+                commit_message = merge_re0.sub("", commit_message)
+                commit_message = merge_re1.sub("", commit_message)
+                commit_message = sign_re0.sub("", commit_message)
+                commit_message = git_svn_re0.sub("", commit_message)
+                commit_message = bot_re0.sub("", commit_message)
+                commit_message = bot_re0.sub("", commit_message)
+                commit_message = ticket_re0.sub("", commit_message)
+                commit_message = commit_message.replace('\n', ' ').strip()
+                
                 l = len(commit_message.split())
                 logging.info(f"commit_message_length:[{l}]")
                 if l <= 6:
                     continue
-                if len(commit.modified_files) == 1: # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
+                no_changed_files = commit.files
+                if  no_changed_files == 1: # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
                         no_modified_method = len(modified_file.changed_methods)
                         if  no_modified_method == 1:
-                            pred = get_prediction_mistral(commit_message)
+                            pred = get_prediction(commit_message)
                             if pred == True:
                                 if 'merge' in commit_message or 'revert' in commit_message:
                                     logging.info(f"Skipping merge commit: {commit.hash}")
@@ -410,13 +444,16 @@ def mine_repo_commits(repo_url, file_types=['.py']):
                                 n_added_lines = modified_file.added_lines
                                 n_deleted_lines = modified_file.deleted_lines
                                 
+                                author = commit.author
                                 # its time to concat all these info
                                 commit_info = {
+                                    'project_name': commit.project_name,
                                     'commit_url': commit_url + '/commit/' + commit.hash,
                                     'commit_message': commit_message,
                                     'filename': filename,
                                     'commit_date': str(commit.committer_date),
-                                    #'no_tokens': file_tokens,
+                                    'author_email': author.email,
+                                    'author_name': author.name,
                                     'nloc': n_loc,
                                     'n_added_lines': n_added_lines,
                                     'n_deleted_lines': n_deleted_lines,
@@ -440,86 +477,98 @@ def mine_repo_commits(repo_url, file_types=['.py']):
                                     batch_id += 1
                                     #write_commit_data_to_file()
                                     write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
-                            else:
-                                if 'merge' in commit_message or 'revert' in commit_message:
-                                    logging.info(f"Skipping merge commit: {commit.hash}")
-                                    continue
-                                # get commit hash
+                            # else:
+                            #     if 'merge' in commit_message or 'revert' in commit_message:
+                            #         logging.info(f"Skipping merge commit: {commit.hash}")
+                            #         continue
+                            #     # get commit hash
 
-                                # original source code
-                                code_diff = modified_file.diff
-                                src_original = modified_file.source_code_before or "na"
-                                src_modified = modified_file.source_code or "na"
-                                key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
-                                #deduplicate based on this
+                            #     # original source code
+                            #     code_diff = modified_file.diff
+                            #     src_original = modified_file.source_code_before or "na"
+                            #     src_modified = modified_file.source_code or "na"
+                            #     key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
+                            #     #deduplicate based on this
 
-                                key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
-                                if key_hash in seen_hashes:
-                                    logging.info(f"Skipping duplicate commit: {commit.hash}")
-                                    continue
-                                #now proceed, extract info for this commit which met all our critera
-                                # get changed method name
-                                changed_method_name = modified_file.changed_methods[0].name
+                            #     key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
+                            #     if key_hash in seen_hashes:
+                            #         logging.info(f"Skipping duplicate commit: {commit.hash}")
+                            #         continue
+                            #     #now proceed, extract info for this commit which met all our critera
+                            #     # get changed method name
+                            #     changed_method_name = modified_file.changed_methods[0].name
                                 
-                                # get the commmit url
-                                commit_url = repo_url
-                                # get hash 
-                                sha = commit.hash
-                                # get filename
-                                filename = modified_file.filename
-                                # get changed method's location
-                                changed_method_loc_start = modified_file.changed_methods[0].start_line
-                                changed_method_loc_end = modified_file.changed_methods[0].end_line
-                                loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
-                                # get the list of methods in this file
-                                methods = modified_file.methods_before
-                                # now iterate through these methods to extract original version
-                                # of the changed_method
-                                for func in methods:
-                                    if func.name == changed_method_name:
-                                        orig_method_loc_start = func.start_line
-                                        orig_method_loc_end = func.end_line
-                                        func_token = func.token_count
-                                        break
-                                loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
+                            #     # get the commmit url
+                            #     commit_url = repo_url
+                            #     # get hash 
+                            #     sha = commit.hash
+                            #     # get filename
+                            #     filename = modified_file.filename
+                            #     # get changed method's location
+                            #     changed_method_loc_start = modified_file.changed_methods[0].start_line
+                            #     changed_method_loc_end = modified_file.changed_methods[0].end_line
+                            #     loc_changed_method = f'[{changed_method_loc_start}:{changed_method_loc_end}]'
+                            #     # get the list of methods in this file
+                            #     methods = modified_file.methods_before
+                            #     # now iterate through these methods to extract original version
+                            #     # of the changed_method
+                            #     for func in methods:
+                            #         if func.name == changed_method_name:
+                            #             orig_method_loc_start = func.start_line
+                            #             orig_method_loc_end = func.end_line
+                            #             func_token = func.token_count
+                            #             break
+                            #     loc_orig_method = f'[{orig_method_loc_start}:{orig_method_loc_end}]'
                                 
-                                #get tokens in file
-                                #file_tokens = modified_file.token_count
-                                n_loc = modified_file.nloc
-                                n_added_lines = modified_file.added_lines
-                                n_deleted_lines = modified_file.deleted_lines
+                            #     #get tokens in file
+                            #     #file_tokens = modified_file.token_count
+                            #     n_loc = modified_file.nloc
+                            #     n_added_lines = modified_file.added_lines
+                            #     n_deleted_lines = modified_file.deleted_lines
                                 
-                                # its time to concat all these info
-                                commit_info = {
-                                    'commit_url': commit_url + '/commit/' + commit.hash,
-                                    'commit_message': commit_message,
-                                    'filename': filename,
-                                    'commit_date': str(commit.committer_date),
-                                    #'no_tokens': file_tokens,
-                                    'nloc': n_loc,
-                                    'n_added_lines': n_added_lines,
-                                    'n_deleted_lines': n_deleted_lines,
-                                    'modified_method': changed_method_name,
-                                    'loc_before': loc_orig_method,
-                                    'loc_after': loc_changed_method,
-                                    'src_before': src_original,
-                                    'src_after': src_modified,
-                                    'diff': code_diff,
-                                    'func_no_tokens': func_token
-                                }
-                                # add this commit info to running list
-                                commit_data_nperf.append(commit_info)
-                                # mark it seen to avoid duplicate
-                                seen_hashes.add(key_hash)
-                                total_found_nperf += 1
-                                local_commit_counter_nperf += 1
-                                logging.info(f"Total nperf found: {total_found_nperf}")
+                            #     # its time to concat all these info
+                            #     commit_info = {
+                            #         'commit_url': commit_url + '/commit/' + commit.hash,
+                            #         'commit_message': commit_message,
+                            #         'filename': filename,
+                            #         'commit_date': str(commit.committer_date),
+                            #         #'no_tokens': file_tokens,
+                            #         'nloc': n_loc,
+                            #         'n_added_lines': n_added_lines,
+                            #         'n_deleted_lines': n_deleted_lines,
+                            #         'modified_method': changed_method_name,
+                            #         'loc_before': loc_orig_method,
+                            #         'loc_after': loc_changed_method,
+                            #         'src_before': src_original,
+                            #         'src_after': src_modified,
+                            #         'diff': code_diff,
+                            #         'func_no_tokens': func_token
+                            #     }
+                            #     # add this commit info to running list
+                            #     commit_data_nperf.append(commit_info)
+                            #     # mark it seen to avoid duplicate
+                            #     seen_hashes.add(key_hash)
+                            #     total_found_nperf += 1
+                            #     local_commit_counter_nperf += 1
+                            #     logging.info(f"Total nperf found: {total_found_nperf}")
 
-                                if len(commit_data_nperf) == data_threshold:
-                                    batch_id_nperf += 1
-                                    #write_commit_data_to_file()
-                                    write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
-
+                            #     if len(commit_data_nperf) == data_threshold:
+                            #         batch_id_nperf += 1
+                            #         #write_commit_data_to_file()
+                            #         write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
+                elif no_changed_files> 1 and no_changed_files <= 20 and get_prediction(commit_message):
+                    commit_info = {
+                        'url': repo_url + '/commit/' + commit.hash
+                    }
+                    # add this commit info to running list
+                    commit_data_url.append(commit_info)
+                    if len(commit_data_url) == data_threshold:
+                        batch_id_url += 1
+                        #write_commit_data_to_file()
+                        write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
+        
+                    
+                
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
@@ -547,7 +596,7 @@ def main():
     global total_found
     global total_found_nperf
     global commit_data
-    global commit_data_nperf
+    global commit_data_url
     global repo_counter_fail
     global repo_counter_success
     logging.info("Starting mining..")
@@ -583,13 +632,16 @@ def main():
 
         if row['processed']:
             logging.info(f"Skipping already processed repo: {repo_url}")
-            batch_id = batch_id_nperf = 1000000
+            #batch_id = batch_id_nperf = 1000000
             continue
-
-        if is_fork(repo_url) == True:
+        #get meta data size is_fork
+        meta_data = get_info(repo_url)
+        if meta_data['fork'] == True:
             logging.info(f"Forked skipping")
             continue
-
+        if int(meta_data['size']) > 2e6:
+            logging.info(f"LargeFile! Skipping")
+            continue
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
         
@@ -617,11 +669,11 @@ def main():
         #write_commit_data_to_file()
         write_commit_data_to_file_and_upload(namespace, bucket_name,results_dir)
         #remaining data if any
-    if commit_data_nperf:
-        logging.info(f"Found remaining {len(commit_data_nperf)} commit rows")
-        batch_id_nperf += 1
+    if commit_data_url:
+        logging.info(f"Found remaining {len(commit_data_url)} commit rows")
+        batch_id_url += 1
         #write_commit_data_to_file()
-        write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
+        write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
