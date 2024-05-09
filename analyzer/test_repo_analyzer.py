@@ -37,7 +37,7 @@ batch_id = 0
 batch_id_url = 0
 seen_hashes = set()
 total_found = 0
-total_found_nperf = 0
+total_found_url = 0
 repo_counter_success = 0
 repo_counter_fail = 0
 
@@ -335,7 +335,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data_url.clear()
-        logging.info(f"NPERF: uploading complete!")
+        logging.info(f"CPerf>20: uploading complete!")
 
 
 ## object store code ends #$
@@ -356,16 +356,16 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
     global seen_hashes
     global batch_id
-    global batch_id_nperf
+    global batch_id_url
     global total_found
-    global total_found_nperf
+    global total_found_url
     global commit_data
     global commit_data_url
     global data_threshold
     global repo_counter_fail
     global repo_counter_success
     local_commit_counter = 0
-    local_commit_counter_nperf = 0
+    local_commit_counter_url = 0
     start_time = time.time()  # Record the start time for the current repository
 
     try:
@@ -586,15 +586,15 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
         end_time = time.time()  # End time for the current repository
         time_taken = end_time - start_time
         logging.info(f"Time taken for processing {repo_url}: {time_taken} seconds")
-        logging.info(f"local_commit_found (perf/nperf):{local_commit_counter}/{local_commit_counter_nperf}: {repo_url}")
+        logging.info(f"local_commit_found (perf/nperf):{local_commit_counter}/{local_commit_counter_url}: {repo_url}")
 
 
 
 def main():
     global batch_id
-    global batch_id_nperf
+    global batch_id_url
     global total_found
-    global total_found_nperf
+    global total_found_url
     global commit_data
     global commit_data_url
     global repo_counter_fail
@@ -639,7 +639,7 @@ def main():
         try:
             meta_data = get_info(repo_url)
             if meta_data is not None:
-                #print("Successfully retrieved metadata:", meta_data)
+                logging.info(f"Successfully retrieved metadata:{meta_data}")
                 # You can access the dictionary as expected
                 fork_status = meta_data["fork"]
                 repo_size = meta_data["size"]
@@ -698,7 +698,7 @@ def main():
     logging.info(f"Total successfully processed: {repo_counter_success}")
     logging.info(f"Total failed to process: {repo_counter_fail}")
     logging.info(f"Total perf commit curated: {total_found}")
-    logging.info(f"Total nperf commit curated: {total_found_nperf}")
+    logging.info(f"Total >20 changedFile commit curated: {total_found_url}")
     logging.info(f"Total time taken: {int(minutes)}")
     # Command to execute
     command = 'touch miner_github/analyzer/script_complete.txt'
