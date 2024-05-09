@@ -33,20 +33,19 @@ echo "Installing parallel ssh (pssh)..."
 sudo apt-get install -y pssh
 
 # Using parallel-ssh to update and install Python 3.8 on multiple hosts
-echo "Updating and installing Python 3.8 on all hosts listed in sshhosts..."
-parallel-ssh -i -h sshhosts 'sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python3.8'
-parallel-ssh -i -h sshhosts 'sudo snap install nvtop'
+echo "Updating and installing Python 3.8 on all hosts listed in sshhosts_copy..."
+parallel-ssh -i -h sshhosts_copy 'sudo apt-get update && sudo apt-get install -y software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python3.8'
+parallel-ssh -i -h sshhosts_copy 'sudo snap install nvtop'
 echo "cleaning previous version.."
 sleep 5
-parallel-ssh -i -h sshhosts 'sudo rm -rf  miner_github/'
+parallel-ssh -i -h sshhosts_copy 'sudo rm -rf  miner_github/'
 echo "Cloning repo to all nodes home directory"
-parallel-ssh -i -h sshhosts 'git clone https://github.com/mak-azad/miner_github.git'
-
-echo "Spliting task to all nodes..."
+parallel-ssh -i -h sshhosts_copy 'git clone https://github.com/mak-azad/miner_github.git'
+echo 'Cloning completed!'
+#echo "Spliting task to all nodes..."
 #python3 task_parallelizer.py repository_lists/github_repositories_C_12222023.csv ubuntu
-echo "Running miner on cluster...."
-sleep 5
-#parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
+# echo "Running miner on cluster...."
+# sleep 5
+#parallel-ssh -i -h sshhosts_copy -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'
 
 echo "Script execution completed at master"
-
