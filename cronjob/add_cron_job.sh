@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Job to add
-CRON_JOB="*/5 * * * * /usr/bin/bash /home/ubuntu/miner_github/cronjob/run_miner.sh > cron.log 2>&1"
+CRON_JOB="*/5 * * * * /usr/bin/bash /users/akazad/miner_github/cronjob/run_miner.sh > cron.log 2>&1"
 
 # Check if the cron job already exists
 crontab -l > current_crontab
