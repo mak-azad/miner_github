@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-c-ds'
+bucket_name = 'bucket-lang-python-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -288,7 +288,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"CPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"PythonPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -321,7 +321,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"CPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"PythonPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -335,7 +335,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data_url.clear()
-        logging.info(f"CPerf>20: uploading complete!")
+        logging.info(f"PythonPerf>20: uploading complete!")
 
 
 ## object store code ends #$
@@ -353,7 +353,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
+def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
     global batch_id
     global batch_id_url
@@ -647,7 +647,7 @@ def main():
                 if fork_status == True:
                     logging.info(f"Forked skipping")
                     continue
-                if int(repo_size) > 2e6:
+                if int(repo_size) > 1e6:
                     logging.info(f"LargeFile! Skipping")
                     continue
             else:
@@ -657,7 +657,7 @@ def main():
             logging.info(f"An error occurred while fetching the metadata: {e}")
         #meta_data = get_info(repo_url)
         repo_counter += 1
-        logging.info(f"[{repo_counter}/{total_repo}]Processing reopository: {repo_url}")
+        logging.info(f"[{repo_counter}/{total_repo}]:Progress: reopository: {repo_url}")
         
         # call miner function
         result = mine_repo_commits(repo_url) 
