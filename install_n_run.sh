@@ -1,10 +1,10 @@
 #!/bin/bash
 # Initialize Conda for script use
 
-source /home/ubuntu/miniforge3/etc/profile.d/conda.sh
+source /users/akazad/miniforge3/etc/profile.d/conda.sh
 
 # Create Conda environments
-/home/ubuntu/miniforge3/bin/conda create -n mytoolenv python=3.10 -y
+/users/akazad/miniforge3/bin/conda create -n mytoolenv python=3.10 -y
 
 # Activate the environment
 # Note: For script use, prefer this method over `conda activate`
@@ -39,13 +39,13 @@ echo "Now going to setup OCI client..."
 mkdir -p ~/.oci
 sleep 5
 echo "Copying OCI credentials...."
-cp /home/ubuntu/miner_github/file.pem .oci/
+cp /users/akazad/miner_github/file.pem .oci/
 # OCI configuration details
 oci_user_ocid="ocid1.user.oc1..aaaaaaaantmgpywouidjiiw33kdpnlcadmdgsqotqwvwwtzfbna76hmwzwdq"
 oci_fingerprint="26:2d:ef:f3:9c:ff:93:42:97:36:05:70:06:a1:72:48"
 oci_tenancy_ocid="ocid1.tenancy.oc1..aaaaaaaar6oqqngegbs2tthc4vjzm3ruzvrddsof45yknta2oo6jmkvcgk5q"
 oci_region="us-ashburn-1"
-oci_key_file="/home/ubuntu/miner_github/file.pem" # Ensure this path is correct and accessible
+oci_key_file="/users/akazad/miner_github/file.pem" # Ensure this path is correct and accessible
 
 # Write the config file. Adjust the path to the key file as necessary.
 cat > ~/.oci/config << EOF
