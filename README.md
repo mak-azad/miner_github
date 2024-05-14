@@ -11,6 +11,9 @@
 - `parallel-ssh -i -h sshhosts 'ps aux | grep 'miner_github/analyzer/test_repo_analyzer.py' | grep -v grep'`
 - `nvidia-smi --query-gpu=name,utilization.gpu,utilization.memory,memory.total,memory.used --format=csv -l 5 > gpu_usage.log`
 - `parallel-ssh -i -h sshhosts 'pkill -9 -f "miner_github/analyzer/repo_analyzer.py"'`
+## Collecting data from Ocacle Cloud Object Store Bucket
+- Modify `/home/akazad/dataset/src/downloader_oci_bucket.py` @Lab
+- Modify `bucket_name` `results_dir = '/home/akazad/dataset/python_perf'`  line 85: `part[0]` : which file to download
 
 # Outdated readme 
 ## 1. Access the master node of your cluster and configure scripts
