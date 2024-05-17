@@ -198,7 +198,7 @@ def get_info(repo_url):
         logging.info(f"Failed to fetch repository data: Status code {response.status_code}")
         return None
 
-def get_public_ip(sshhosts_path='/home/ubuntu/miner_github/sshhosts_hostname'):
+def get_public_ip(sshhosts_path='/users/akazad/miner_github/sshhosts_hostname'):
     ip_address = get_ip_from_sshosts(sshhosts_path)
     if ip_address:
         logging.info(f"fetched IP locally!")
