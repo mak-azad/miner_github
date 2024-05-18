@@ -647,7 +647,7 @@ def main():
                 if fork_status == True:
                     logging.info(f"Forked skipping")
                     continue
-                if int(repo_size) > 1e6:
+                if int(repo_size) > 2e6:
                     logging.info(f"LargeFile! Skipping")
                     continue
             else:
