@@ -53,7 +53,11 @@ def parse_output(text):
         return res.group(0)
     else:
         return None
-    
+
+def clear_crontab():
+    os.system('crontab -r')
+    print("All crontab entries have been removed.")
+
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ##### Roberta ########
@@ -659,10 +663,11 @@ def main():
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]:Progress: reopository: {repo_url}")
         
+        df.at[index, 'processed'] = True
         # call miner function
         result = mine_repo_commits(repo_url) 
 
-        df.at[index, 'processed'] = result
+        #df.at[index, 'processed'] = result
         df.to_csv(input_csv_file,index=False)
         logging.info(f"Updated csv file with current repo status!")
 
@@ -710,7 +715,9 @@ def main():
         logging.info(f"File 'script_complete.txt' created successfully.")
     else:
         logging.info(f"Failed to create file 'script_complete.txt'.")
-
+    logging.info(f'Killing the script!')
+    clear_crontab()
+    logging.info(f"All crontab entries have been removed.")
 
 if __name__ == "__main__":
     main()
