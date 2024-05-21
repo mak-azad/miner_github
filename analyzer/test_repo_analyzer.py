@@ -629,6 +629,7 @@ def main():
     #for repo_url in unique_repo_urls:
     for index, row in df.iterrows():
         repo_url = row['url']
+        df.at[index, 'processed'] = True
 
         if row['processed']:
             logging.info(f"Skipping already processed repo: {repo_url}")
@@ -662,7 +663,7 @@ def main():
         # call miner function
         result = mine_repo_commits(repo_url) 
 
-        df.at[index, 'processed'] = result
+        #df.at[index, 'processed'] = result
         df.to_csv(input_csv_file,index=False)
         logging.info(f"Updated csv file with current repo status!")
 
