@@ -1,0 +1,21 @@
+Total Time,Average Time,Accuracy,Precision,Recall,F1 Score,GPU Memory Usage (MB),GPU Memory Before each input Usage (MB),GPU Memory After each input Usage (MB),Token_per_input,FPR
+350.52553510665894,0.28014751525244413,0.9063136456211812,0.9583333333333334,0.8483606557377049,0.9,"0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64",18.908564625762036,0.03643724696356275
+350.50684332847595,0.28081539339758077,0.9075975359342916,0.9624413145539906,0.8471074380165289,0.9010989010989011,"0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64",18.861065531194,0.0326530612244898
+350.73494029045105,0.28097394658875996,0.9063136456211812,0.9583333333333334,0.8483606557377049,0.9,"0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64",18.846264957295418,0.03643724696356275
+350.6571547985077,0.2808608254361104,0.9038854805725971,0.9534883720930233,0.8471074380165289,0.8971553610503282,"0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64",18.853281938608472,0.04048582995951417
+351.20915603637695,0.2812784192044643,0.9040816326530612,0.958139534883721,0.8442622950819673,0.8976034858387799,"0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64","0    0.0
+Name: Memory Usage (MiB), dtype: float64",18.824855884230153,0.036585365853658534
