@@ -6,7 +6,7 @@ bash Miniforge3-$(uname)-$(uname -m).sh`
 - `bash freeze_ubuntu.sh`
 - `bash master.sh`
 - `python3 task_parallelizer.py repository_lists/filtered_repositories_c.csv ubuntu`
-- `parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /home/ubuntu/miner_github/install_n_run.sh'`
+- `parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /users/akazad/miner_github/install_n_run.sh'`
 - `parallel-ssh -i -h sshhosts 'chmod +x miner_github/cronjob/add_cron_job.sh'`
 - `parallel-ssh -i -h sshhosts 'bash miner_github/cronjob/add_cron_job.sh'`
 - `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/test_repo_analyzer.py > /dev/null 2> error_log.txt || echo "Command failed on $(hostname)" >> error_log.txt'`
