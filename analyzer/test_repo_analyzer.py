@@ -578,7 +578,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
     except Exception as repo_error:
         repo_counter_fail += 1
         logging.error(f"Error while accessing repository '{repo_url}': {repo_error}")
-        return False
+        return True
         
         # Continue to the next repository despite the error
 
@@ -629,14 +629,14 @@ def main():
     #for repo_url in unique_repo_urls:
     for index, row in df.iterrows():
         repo_url = row['url']
-        df.at[index, 'processed'] = True
 
         if row['processed']:
             logging.info(f"Skipping already processed repo: {repo_url}")
             #batch_id = batch_id_nperf = 1000000
             continue
         #get meta data size is_fork
-        
+        df.at[index, 'processed'] = True
+        df.to_csv(input_csv_file,index=False)
         try:
             meta_data = get_info(repo_url)
             if meta_data is not None:
@@ -663,7 +663,7 @@ def main():
         # call miner function
         result = mine_repo_commits(repo_url) 
 
-        #df.at[index, 'processed'] = result
+        df.at[index, 'processed'] = result
         df.to_csv(input_csv_file,index=False)
         logging.info(f"Updated csv file with current repo status!")
 
