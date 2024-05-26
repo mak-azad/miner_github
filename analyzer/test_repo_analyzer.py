@@ -582,7 +582,7 @@ def mine_repo_commits(repo_url, file_types=['.rs']):
     except Exception as repo_error:
         repo_counter_fail += 1
         logging.error(f"Error while accessing repository '{repo_url}': {repo_error}")
-        return False
+        return True
         
         # Continue to the next repository despite the error
 
@@ -639,7 +639,9 @@ def main():
             #batch_id = batch_id_nperf = 1000000
             continue
         #get meta data size is_fork
-        
+        #get meta data size is_fork
+        df.at[index, 'processed'] = True
+        df.to_csv(input_csv_file,index=False)
         try:
             meta_data = get_info(repo_url)
             if meta_data is not None:
@@ -663,11 +665,10 @@ def main():
         repo_counter += 1
         logging.info(f"[{repo_counter}/{total_repo}]:Progress: reopository: {repo_url}")
         
-        df.at[index, 'processed'] = True
         # call miner function
         result = mine_repo_commits(repo_url) 
 
-        #df.at[index, 'processed'] = result
+        df.at[index, 'processed'] = result
         df.to_csv(input_csv_file,index=False)
         logging.info(f"Updated csv file with current repo status!")
 
