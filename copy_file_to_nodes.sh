@@ -7,7 +7,7 @@ remote_directory="/users/akazad/miner_github/analyzer"
 # Read the IP addresses from the sshhosts file and copy the file to each node
 while read -r node_ip; do
     echo "Copying to $node_ip..."
-    scp "$file_to_copy" ubuntu@"$node_ip":"$remote_directory"
+    scp "$file_to_copy" akazad@"$node_ip":"$remote_directory"
     if [ $? -eq 0 ]; then
         echo "Successfully copied to $node_ip"
     else
