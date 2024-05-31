@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-java-ds'
+bucket_name = 'bucket-lang-rust2-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -40,7 +40,7 @@ total_found = 0
 total_found_url = 0
 repo_counter_success = 0
 repo_counter_fail = 0
-
+total_commit = 0
 # Disable tokenizers parallelism
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 cpu_count = os.cpu_count()
@@ -292,7 +292,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"javaPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"rustPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -325,7 +325,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"javaPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"rustPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -357,8 +357,9 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.java']):
+def mine_repo_commits(repo_url, file_types=['.rs']):
     global seen_hashes
+    global total_commit
     global batch_id
     global batch_id_url
     global total_found
@@ -374,6 +375,7 @@ def mine_repo_commits(repo_url, file_types=['.java']):
 
     try:
         for commit in Repository(repo_url, only_no_merge=True, only_modifications_with_file_types=file_types).traverse_commits():
+            total_commit += 1
             try: 
                 commit_message = commit.msg
                 # clean data please
@@ -595,6 +597,7 @@ def mine_repo_commits(repo_url, file_types=['.java']):
 
 
 def main():
+    global total_commit
     global batch_id
     global batch_id_url
     global total_found
@@ -706,6 +709,7 @@ def main():
     logging.info(f"Total perf commit curated: {total_found}")
     logging.info(f"Total >20 changedFile commit curated: {total_found_url}")
     logging.info(f"Total time taken: {int(minutes)}")
+    logging.info(f"Total commit: {total_commit}")
     # Command to execute
     command = 'touch miner_github/analyzer/script_complete.txt'
 
