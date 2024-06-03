@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-rust2-ds'
+bucket_name = 'bucket-lang-python2-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -292,7 +292,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"rustPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"python2Perf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -325,7 +325,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"rustPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"python2PerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -390,7 +390,7 @@ def mine_repo_commits(repo_url, file_types=['.rs']):
                 commit_message = commit_message.replace('\n', ' ').strip()
                 
                 l = len(commit_message.split())
-                logging.info(f"commit_message_length:[{l}]")
+                #logging.info(f"commit_message_length:[{l}]")
                 if l <= 6:
                     continue
                 no_changed_files = commit.files
