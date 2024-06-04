@@ -357,7 +357,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.rs']):
+def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
     global total_commit
     global batch_id
