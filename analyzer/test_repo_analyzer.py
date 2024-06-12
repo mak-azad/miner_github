@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-rust-ds'
+bucket_name = 'bucket-lang-cuda-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -83,7 +83,7 @@ model.to(device)
 #     "/home/ubuntu/Mistral-7B-Instruct-v0.2",
 #     torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
 #     device_map="auto", # Automatically maps the model layers to the available devices
-#     trustremote_code=True, # Allows the execution of remote code for custom model configurations
+#     tcudaremote_code=True, # Allows the execution of remote code for custom model configurations
 #     #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
 #     quantization_config=bnb_config, # Applies the BitsAndBytes configuration
 # )
@@ -292,7 +292,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"Perf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"cudaPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -325,7 +325,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"PerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"cudaPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -357,7 +357,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.rs']):
+def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
     global seen_hashes
     global total_commit
     global batch_id
