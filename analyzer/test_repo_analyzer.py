@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-cuda-ds'
+bucket_name = 'bucket-lang-auto-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -292,7 +292,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"cudaPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"autoPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -325,7 +325,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"cudaPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"autoPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -357,7 +357,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
+def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx','.py']):
     global seen_hashes
     global total_commit
     global batch_id
@@ -616,14 +616,14 @@ def main():
     # create df frame
     df = pd.read_csv(input_csv_file)
     logging.info(f"CSV loaded into df!")
-    repo_urls = read_repository_urls_from_csv(input_csv_file)
-    unique_repo_urls = list(set(repo_urls))
+    #repo_urls = read_repository_urls_from_csv(input_csv_file)
+    #unique_repo_urls = list(set(repo_urls))
     #repo_urls = ['https://github.com/opencv/opencv']  # List of repository URLs to process
 
     # process all the repositories in the list
     repo_counter = 0
 
-    total_repo = len(unique_repo_urls)
+    total_repo = len(df)
     
     if 'processed' not in df.columns:
         df['processed'] = False
