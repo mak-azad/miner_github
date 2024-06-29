@@ -25,7 +25,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-kotlin-ds' #tochange
+bucket_name = 'bucket-lang-python-dev' #tochange
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -94,7 +94,7 @@ model.to(device)
 
 root_dir = "miner_github/analyzer"
 
-data_threshold = 250 #tochange
+data_threshold = 500 #tochange
 commit_data = [] # running commit buffer
 commit_data_url = []
 
@@ -159,7 +159,7 @@ def get_prediction(input_text):
    
     predicted_class_id = logits.argmax().item()
     predicted_label = model.config.id2label[predicted_class_id]
-    return predicted_label == 'LABEL_1'
+    return "1" if predicted_label == 'LABEL_1' else "0"
 
 
 def get_ip_from_sshosts(sshosts_path):
@@ -323,7 +323,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"kotlinPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"python_dev_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -337,7 +337,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
-        logging.info(f"PERF{batch_id}: uploading complete!")
+        logging.info(f"Dev{batch_id}: uploading complete!")
         # garbage collect and emtpy cache
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -388,6 +388,139 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
+
+
+# Define regex patterns for each category with word boundaries
+gpu_usage_pattern = re.compile(
+    r'\b('
+    r'cuda|nvidia|pycuda|'
+    r'numba\.cuda(?:\.(jit|device|declare_device|to_device|as_cuda_array|synchronize))?|'
+    r'tensorflow-gpu|'
+    r'torch\.cuda(?:\.(is_available|empty_cache|set_device|get_device_name|memory_allocated|memory_reserved))?|'
+    r'cupy(?:\.(array|zeros|ones|empty|arange|linspace|fromDlpack|asarray))?|'
+    r'numba'
+    r')\b',
+    re.IGNORECASE
+) #1
+
+
+vectorization_pattern = re.compile(
+    r'\b('
+    r'numpy\.(array|arange|zeros|ones|linspace|dot|apply_along_axis|fromfunction|vectorize)|'
+    r'scipy\.(linalg|optimize|sparse|special)|'
+    r'pandas\.(apply|applymap|agg)|'
+    r'simd|'
+    r'pandas\.Series\.(\w+)'
+    r')\b',
+    re.IGNORECASE
+) #2
+
+
+memory_locality_pattern = re.compile(r'\b(numpy*.array|buffer|memoryview|copy|deepcopy|mmap)\b', re.IGNORECASE)
+
+
+concurrency_pattern = re.compile(
+    r'\b('
+    r'threading(?:\.(Thread|Lock|RLock|Condition|Event|Semaphore|Barrier|Timer|local|current_thread|main_thread|enumerate|active_count|settrace|setprofile|stack_size))?|'
+    r'multiprocessing(?:\.(Process|Queue|Pipe|Value|Array|Pool|Manager))?|'
+    r'asyncio(?:\.(Future|Coroutine|Task|EventLoop|create_task|run|gather|sleep))?|'
+    r'concurrent\.futures(?:\.(ThreadPoolExecutor|ProcessPoolExecutor|Future|as_completed|wait))?|'
+    r'async(?!\s*=)|await|'
+    r')\b',
+    re.IGNORECASE
+)
+
+data_structure_library_pattern = re.compile(
+    r'\b('
+    r'numpy\.(array|arange|zeros|ones|empty|linspace|fromfunction|ndarray)|'
+    r'pandas\.(DataFrame|Series|read_csv|read_excel|concat|merge)|'
+    r'list|dict|set|'
+    r'collections\.(namedtuple|deque|Counter|OrderedDict|defaultdict)|'
+    r'array|'  # This could be part of the array module e.g., array.array
+    r'numpy|'
+    r'pandas|'
+    r'list.*comprehension|'
+    r'aiohttp|'
+    r'yield'
+    r')\b',
+    re.IGNORECASE
+)
+
+memory_management_pattern = re.compile(
+    r'\b('
+    r'gc(?:\.collect|\.disable|\.enable|\.set_debug)?|'
+    r'del\b|'
+    r'\bmemory.*leak(?:s|ing)?\b|'
+    r'\bresource(?:\.getrusage|\.getrlimit)?|'
+    r'psutil\.(process_iter|virtual_memory|swap_memory|cpu_percent|memory_info)|'
+    r'tracemalloc\.(start|stop|get_traced_memory|get_tracemalloc_memory)|'
+    r'memory_profiler|'
+    r'alloc'
+    r')\b',
+    re.IGNORECASE
+)
+jit_compilation_pattern = re.compile(r'\b(pypy|cython|static)\b', re.IGNORECASE)
+caching_pattern = re.compile(
+    r'\b('
+    r'functools\.lru_cache|'  # Standard library LRU cache decorator
+    r'cachetools\.(Cache|LRUCache|TTLCache|RRCache)|'  # Various cache types from cachetools
+    r'memoization|'  # General term for caching results of function calls
+    r'cache\.memoize|'  # Common method in custom caching solutions or libraries like Flask-Caching
+    r'joblib\.Memory|'  # Caching of results with joblib, used often for caching in scientific computing
+    r'@cache|'  # Python 3.9+ decorator for simple caching
+    r'@cached_property'  # Decorator for caching properties in classes
+    
+    r')\b',
+    re.IGNORECASE
+)
+profiling_tools_pattern = re.compile(r'\b(cProfile|profile|line_profiler|memory_profiler|pyflame|py-spy)\b', re.IGNORECASE)
+database_optimization_pattern = re.compile(r'\b(SQLAlchemy|peewee|Django ORM|batch*.queries|connection*.pooling)\b', re.IGNORECASE)
+numerical_computing_pattern = re.compile(r'\b(SciPy|BLAS|LAPACK|ATLAS)\b', re.IGNORECASE)
+serialization_pattern = re.compile(r'\b(pickle|cPickle|json|ujson|PyArrow|protobuf)\b', re.IGNORECASE)
+distributed_computing_pattern = re.compile(
+    r'\b('
+    r'PySpark\.(SparkContext|RDD|broadcast|accumulator|DataFrame|sqlContext|hiveContext)|'  # PySpark classes and methods
+    r'Ray\.(init|remote|put|get|Actor|shutdown)|'  # Ray core methods and classes
+    r'@ray\.remote'  # Ray decorator for remote functions and classes
+    r')\b',
+    re.IGNORECASE
+)
+
+generic_perf_pattern = re.compile(
+    r'('
+    r'speed.*up|'
+    r'more.*efficien|'  # General efficiency improvements
+    r'better.*performance|'  # Comparative performance improvements
+    r'fix.*performance|'  # Fixes that relate to performance
+    r'improv.*performance|'  # General improvements to performance
+    r'optimiz.*performance'  # Optimizations specifically targeting performance
+    r')',
+    re.IGNORECASE
+)
+
+def get_domain_vector(text, src):
+    performance_domain_vector = [0] * 14  # Now for 14 categories
+
+    # Check each pattern in both text and src, update the vector to 1 if any match is found
+    patterns = [
+        gpu_usage_pattern, vectorization_pattern, memory_locality_pattern,concurrency_pattern,
+        data_structure_library_pattern, memory_management_pattern, jit_compilation_pattern,
+        caching_pattern, profiling_tools_pattern,
+        database_optimization_pattern, numerical_computing_pattern, serialization_pattern,
+        distributed_computing_pattern,generic_perf_pattern
+    ]
+
+    # Iterate over patterns and update vector accordingly
+    for i, pattern in enumerate(patterns):
+        if pattern.search(text) or pattern.search(src):
+            performance_domain_vector[i] = 1
+
+    # Convert list to string without separators
+    result_vector_str = ''.join(map(str, performance_domain_vector))
+    return result_vector_str
+
+    
+
 
 def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
@@ -453,17 +586,27 @@ def mine_repo_commits(repo_url, file_types=['.py']):
                         n_added_lines = modified_file.added_lines
                         n_deleted_lines = modified_file.deleted_lines
                         
-                        domain_vector = getDomainVector(msg, src) # start working on this
+                        domain_vector = get_domain_vector(commit_message,commit_src) # start working on this
+                        pred = get_prediction(commit_message)
                         
                         commit_info = {
                             'dev_email': c_dev_email,
                             'dev_name': c_dev_name,
                             'url': c_url,
                             'md5hash': key_hash,
-                            'domain_vec': domain_vector
+                            'added_lines': n_added_lines,
+                            'deleted_lines': n_deleted_lines,
+                            'domain_vec': domain_vector,
+                            'pred': pred
                         }
+                        commit_data.append(commit_info)
+                        seen_hashes.add(key_hash)
+                        total_found += 1
+                        local_commit_counter += 1
                         
-                        
+                        if len(commit_data) == data_threshold:
+                            batch_id +=1
+                            write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
                         """
                         no_modified_method = len(modified_file.changed_methods)
                         if  no_modified_method == 1:
@@ -553,19 +696,19 @@ def mine_repo_commits(repo_url, file_types=['.py']):
                                 #     batch_id += 1
                                 #     #write_commit_data_to_file()
                                 #     write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
-                elif no_changed_files> 1 and no_changed_files <= 20 and get_prediction(commit_message):
-                    commit_info = {
-                        'url': repo_url + '/commit/' + commit.hash
-                    }
-                    # add this commit info to running list
-                    commit_data_url.append(commit_info)
-                    if len(commit_data_url) == data_threshold:
-                        batch_id_url += 1
-                        #write_commit_data_to_file()
-                        write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
+                # elif no_changed_files> 1 and no_changed_files <= 20 and get_prediction(commit_message):
+                #     commit_info = {
+                #         'url': repo_url + '/commit/' + commit.hash
+                #     }
+                #     # add this commit info to running list
+                #     commit_data_url.append(commit_info)
+                #     if len(commit_data_url) == data_threshold:
+                #         batch_id_url += 1
+                #         #write_commit_data_to_file()
+                #         write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
+                else:
+                    logging.info(f"Skipping {no_changed_files} files change!")
         
-                    
-                
             except Exception as commit_error:
                 logging.error(f"Error processing commit '{commit.hash}' in repository '{repo_url}': {commit_error}")
                 # Continue to the next commit despite the error
@@ -604,6 +747,7 @@ def main():
     
     # here we read the .csv file containg this node's split of the repo list to be mined
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
+    #input_csv_file = os.path.join(root_dir, f"top_10000_python_projects_by_stars.csv")
     # create df frame
     df = pd.read_csv(input_csv_file)
     logging.info(f"CSV loaded into df!")
