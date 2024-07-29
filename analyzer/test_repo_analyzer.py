@@ -27,7 +27,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-c-ds'
+bucket_name = 'bucket-lang-hpc-ds'
 
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -92,7 +92,7 @@ model.to(device)
 
 root_dir = "miner_github/analyzer"
 
-data_threshold = 250
+data_threshold = 10
 commit_data = [] # running commit buffer
 commit_data_url = []
 
@@ -288,7 +288,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"CPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"hpcPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -321,7 +321,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"CPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"hpcPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
