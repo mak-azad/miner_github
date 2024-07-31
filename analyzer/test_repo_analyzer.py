@@ -61,6 +61,10 @@ def parse_output(text):
     else:
         return None
     
+def clear_crontab():
+    os.system('crontab -r')
+    logging.info(f"All crontab entries have been removed.")
+    
  # Check if GPU (CUDA) is available, else use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ##### Roberta ########
@@ -730,8 +734,8 @@ def main():
     date = datetime.date.today().strftime("%m%d%Y")
     
     # here we read the .csv file containg this node's split of the repo list to be mined
-    #input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
-    input_csv_file = "test.csv"
+    input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
+    #input_csv_file = "test.csv"
     #input_csv_file = "filtered_repositories_c.csv"
     # create df frame
     df = pd.read_csv(input_csv_file)
@@ -844,6 +848,9 @@ def main():
     else:
         logging.info(f"Failed to create file 'script_complete.txt'.")
 
+    logging.info(f'Killing the script!')
+    clear_crontab()
+    logging.info(f"All crontab entries have been removed.")
 
 if __name__ == "__main__":
     main()
