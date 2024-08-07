@@ -315,7 +315,8 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
         commit_data.clear()
         logging.info(f"hpcPERF{batch_id}: uploading complete!")
         # garbage collect and emtpy cache
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         gc.collect()
 
 # for nonperf commit data write
@@ -452,6 +453,13 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
         for commit in Repository(repo_url, only_no_merge=True, only_modifications_with_file_types=file_types).traverse_commits():
             try: 
                 commit_message = commit.msg
+                l = len(commit_message.split())
+                if l >= 1000:
+                    logging.info(f"Too big commit message!")
+                    continue
+                #logging.info(f"commit_message_length:[{l}]")
+                if l <= 6:
+                    continue
                 # clean data please
                 commit_message = fixes_re.sub("", commit_message)
                 commit_message = merge_re0.sub("", commit_message)
@@ -463,10 +471,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 commit_message = ticket_re0.sub("", commit_message)
                 commit_message = commit_message.replace('\n', ' ').strip()
                 
-                l = len(commit_message.split())
-                #logging.info(f"commit_message_length:[{l}]")
-                if l <= 6:
-                    continue
+
                 
                 commit_message = commit_message.lower()
                 
@@ -488,6 +493,10 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 # checking for deduplication
                 code_diff = modified_file.diff
                 src_original = modified_file.source_code_before or "na"
+                lsrc = len(src_original.split())
+                if lsrc >= 150000: #skip large file
+                    logging.info(f"Avoid large file 1Mb")
+                    continue
                 src_modified = modified_file.source_code or "na"
                 key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
                 #deduplicate based on this
