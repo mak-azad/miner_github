@@ -28,7 +28,7 @@ hostname = socket.gethostname()
 
 # OCI object store INFO
 namespace = 'idqgqghww6tn'
-bucket_name = 'bucket-lang-hpc-ds'
+bucket_name = 'bucket-lang-cuda-latest-ds'
 bucket_name_dev = 'bucket-lang-hpc-ds-dev'
 
 MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
@@ -333,7 +333,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"hpcPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
+    filename = f"cudaPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -347,7 +347,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data_url.clear()
-        logging.info(f"hpcPerf>20: uploading complete!")
+        logging.info(f"cudaPerf>20: uploading complete!")
         
         
 # for nonperf commit data write
@@ -506,7 +506,8 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                     continue
                 seen_hashes.add(key_hash) # deduplication
                 # calculate domain sill vector for each commit message/ perf or nonperf
-                domain_vector = get_domain_vector(commit_message,code_diff)
+                #domain_vector = get_domain_vector(commit_message,code_diff)
+                domain_vector = ""
                 
                 commit_info_dev = {
                     'md5hash': key_hash,
@@ -524,7 +525,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 if len(commit_dev_exp) == 5000:
                     batch_id_dev += 1
                     # call upload function
-                    write_commit_data_to_file_and_upload_dev(namespace, bucket_name_dev, results_dir) # give the new bucket name for separating storage of dev exp
+                    #write_commit_data_to_file_and_upload_dev(namespace, bucket_name_dev, results_dir) # give the new bucket name for separating storage of dev exp
                     
                     
                     
@@ -861,8 +862,6 @@ def main():
     clear_crontab()
     logging.info(f"All crontab entries have been removed.")
 
-
-def main():
 
 if __name__ == "__main__":
     main()
