@@ -852,5 +852,8 @@ def main():
     clear_crontab()
     logging.info(f"All crontab entries have been removed.")
 
+
+def main():
+
 if __name__ == "__main__":
     main()
