@@ -5,7 +5,7 @@
 - `parallel-ssh -i -h sshhosts  -t 0  'bash Miniforge3-Linux-x86_64.sh -b '`
 - `bash freeze_ubuntu.sh`
 - `bash master.sh`
-- `bash install_n_run.sh'`
+- `parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /users/akazad/miner_github/install_n_run.sh`
 - `python3 task_parallelizer.py repository_lists/filtered_repositories_c.csv ubuntu`
 - `parallel-ssh -i -h sshhosts 'chmod +x miner_github/cronjob/add_cron_job.sh'`
 - `parallel-ssh -i -h sshhosts 'bash miner_github/cronjob/add_cron_job.sh'`
