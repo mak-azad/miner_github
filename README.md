@@ -5,14 +5,11 @@
 - `parallel-ssh -i -h sshhosts  -t 0  'bash Miniforge3-Linux-x86_64.sh -b '`
 - `bash freeze_ubuntu.sh`
 - `bash master.sh`
-- `parallel-ssh -i -h sshhosts -x "-oStrictHostKeyChecking=no" -P -t 0 'nohup bash /users/akazad/miner_github/install_n_run.sh'`
+- `bash install_n_run.sh'`
 - `python3 task_parallelizer.py repository_lists/filtered_repositories_c.csv ubuntu`
 - `parallel-ssh -i -h sshhosts 'chmod +x miner_github/cronjob/add_cron_job.sh'`
 - `parallel-ssh -i -h sshhosts 'bash miner_github/cronjob/add_cron_job.sh'`
-- `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/test_repo_analyzer.py > /dev/null 2> error_log.txt || echo "Command failed on $(hostname)" >> error_log.txt'`
 - `parallel-ssh -i -h sshhosts 'ps aux | grep 'miner_github/analyzer/test_repo_analyzer.py' | grep -v grep'`
-- `nvidia-smi --query-gpu=name,utilization.gpu,utilization.memory,memory.total,memory.used --format=csv -l 5 > gpu_usage.log`
-- `parallel-ssh -i -h sshhosts 'pkill -9 -f "miner_github/analyzer/repo_analyzer.py"'`
 
 # Outdated readme 
 ## 1. Access the master node of your cluster and configure scripts
