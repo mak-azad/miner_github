@@ -299,7 +299,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"hpcPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"cudaPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -313,7 +313,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
-        logging.info(f"hpcPERF{batch_id}: uploading complete!")
+        logging.info(f"cudaPERF{batch_id}: uploading complete!")
         # garbage collect and emtpy cache
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -541,7 +541,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                 
                 # the rest is for perf only, saving performance data
                 
-                if  no_changed_files == 1 and pred: # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
+                if  no_changed_files == 1 and pred == "1": # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
                     
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
@@ -694,7 +694,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                         #         batch_id_nperf += 1
                         #         #write_commit_data_to_file()
                         #         write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
-                elif no_changed_files > 1 and pred:
+                elif no_changed_files > 1 and pred == "1":
                     commit_info = {
                         'url': commit_url,
                         'n_chaged_file': no_changed_files
