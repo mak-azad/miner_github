@@ -1,5 +1,5 @@
 # Mining Tool
-## Running the tool
+## Running the tool on cloudlab
 - `bash check.sh` (checking if nodes setup correctly)
 - `parallel-ssh -i -h sshhosts 'curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"'` (setting up conda)
 - `parallel-ssh -i -h sshhosts  -t 0  'bash Miniforge3-Linux-x86_64.sh -b '` (setting up conda)
