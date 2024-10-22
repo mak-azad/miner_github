@@ -30,7 +30,9 @@ namespace = 'idqgqghww6tn'
 bucket_name = 'bucket-lang-kotlin-ds'
 
 
-MAX_COMMIT = 100000  #define max number of commits to be collected, uncomment if not necessary
+data_threshold = 50
+commit_data = [] # running commit buffer
+commit_data_url = []
 
 # Initialize a global batch_id
 batch_id = 0
@@ -63,8 +65,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ##### Roberta ########
 # Load the tokenizer and model only once
 
-tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/final_roberta_with_new_400k_plus_37k_Best")
-model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/final_roberta_with_new_400k_plus_37k_Best")
+tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/second_Base_version_of_codebert_with_commit_and_diff")
+model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/second_Base_version_of_codebert_with_commit_and_diff")
 # Move model to the chosen device
 model.to(device)
 
@@ -93,23 +95,8 @@ model.to(device)
 
 
 # root for the script
-
-root_dir = "miner_github/analyzer"
-
-data_threshold = 250
-commit_data = [] # running commit buffer
-commit_data_url = []
-
-# def setup_logging():
-#     '''
-#     # Function to initialize logging
-#     '''
-#     logs_dir = os.path.join(root_dir, "logs")  # Log directory
-#     os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
-#     log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
-#     logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-
+root_dir = "miner_github/analyzer" #for test
+#root_dir = "miner_github/analyzer"
 # Logging configuration
 logs_dir = os.path.join(root_dir, "logs") #log directory
 os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
@@ -150,7 +137,6 @@ def get_prediction(input_text):
     """
     Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
     """
-    
     # Tokenize the input text
     inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
     # Move the input tensors to the same device as the model
@@ -254,7 +240,6 @@ def write_commit_data_to_file():
 
 
 ## object store code ##
-12
 def get_oci_config():
     """
     Load the OCI configuration. Modify this function if you need to load a specific profile.
@@ -292,7 +277,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"kotlinPerf_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"perf_python_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -301,14 +286,16 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
                 file.write(json.dumps(commit_info) + '\n')
         
         #oci_config = get_oci_config()  # Load the OCI configuration
-        upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
+        #no need to upload now just keep in the machine
+        #upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
     except IOError as e:
         logging.info(f"An error occurred while writing or uploading the file: {e}")
     finally:
         commit_data.clear()
         logging.info(f"PERF{batch_id}: uploading complete!")
         # garbage collect and emtpy cache
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         gc.collect()
 
 # for nonperf commit data write
@@ -346,7 +333,7 @@ def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir
 
 # regex to clean commit message
 
-fixes_re = re.compile("fix(es)?\\s+#\\d+", re.I)
+#fixes_re = re.compile("fix(es)?\\s+#\\d+", re.I)
 merge_re0 = re.compile("merge pull request[^\\n]+", re.I)
 merge_re1 = re.compile("Merge (remote-tracking )?branch[^\\n]+", re.I)
 sign_re0 = re.compile("(Signed-off-by|Reviewed-By|Change-Id):[^\\n]+", re.I)
@@ -357,7 +344,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.kt']):
+def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
     global total_commit
     global batch_id
@@ -379,7 +366,7 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
             try: 
                 commit_message = commit.msg
                 # clean data please
-                commit_message = fixes_re.sub("", commit_message)
+                #commit_message = fixes_re.sub("", commit_message)
                 commit_message = merge_re0.sub("", commit_message)
                 commit_message = merge_re1.sub("", commit_message)
                 commit_message = sign_re0.sub("", commit_message)
@@ -390,17 +377,24 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
                 commit_message = commit_message.replace('\n', ' ').strip()
                 
                 l = len(commit_message.split())
-                #logging.info(f"commit_message_length:[{l}]")
-                if l <= 6:
+                if l >= 1000:
+                    logging.info(f"Too big commit message!")
+                    continue
+                if l <= 3:
                     continue
                 no_changed_files = commit.files
                 if  no_changed_files == 1: # and get_prediction_mistral(commit_message): #get_prediction(commit_message) == 'LABEL_1':
                     modified_file = commit.modified_files[0]
+                    code_diff = modified_file.diff
+                    if len(tokenizer.tokenize(commit_message)) + len(tokenizer.tokenize(code_diff)) > 515:
+                        logging.info(f"Context Exceded! Skipping")
+                        continue
+                    input_text = commit_message + ' ' + code_diff
 
                     if modified_file.change_type not in ["ADD", "DELETE"]:
                         no_modified_method = len(modified_file.changed_methods)
                         if  no_modified_method == 1:
-                            pred = get_prediction(commit_message)
+                            pred = get_prediction(input_text)
                             if pred == True:
                                 if 'merge' in commit_message or 'revert' in commit_message:
                                     logging.info(f"Skipping merge commit: {commit.hash}")
@@ -408,8 +402,12 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
                                 # get commit hash
 
                                 # original source code
-                                code_diff = modified_file.diff
+                                
                                 src_original = modified_file.source_code_before or "na"
+                                lsrc = len(src_original.split())
+                                if lsrc >= 150000: #skip large file
+                                    logging.info(f"Avoid large file 1Mb")
+                                    continue
                                 src_modified = modified_file.source_code or "na"
                                 key = src_original + src_modified # the idea is comes from disticnt traning data sicne we pass this code, so focus on it
                                 #deduplicate based on this
@@ -419,6 +417,8 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
                                     logging.info(f"Skipping duplicate commit: {commit.hash}")
                                     continue
                                 #now proceed, extract info for this commit which met all our critera
+                                # mark it seen to avoid duplicate
+                                seen_hashes.add(key_hash)
                                 # get changed method name
                                 changed_method_name = modified_file.changed_methods[0].name
                                 
@@ -473,8 +473,7 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
                                 }
                                 # add this commit info to running list
                                 commit_data.append(commit_info)
-                                # mark it seen to avoid duplicate
-                                seen_hashes.add(key_hash)
+
                                 total_found += 1
                                 local_commit_counter += 1
                                 logging.info(f"Total perf found: {total_found}")
@@ -562,16 +561,17 @@ def mine_repo_commits(repo_url, file_types=['.kt']):
                             #         batch_id_nperf += 1
                             #         #write_commit_data_to_file()
                             #         write_commit_data_to_file_and_upload_nperf(namespace, bucket_name, results_dir)
-                elif no_changed_files> 1 and no_changed_files <= 20 and get_prediction(commit_message):
-                    commit_info = {
-                        'url': repo_url + '/commit/' + commit.hash
-                    }
-                    # add this commit info to running list
-                    commit_data_url.append(commit_info)
-                    if len(commit_data_url) == data_threshold:
-                        batch_id_url += 1
-                        #write_commit_data_to_file()
-                        write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
+                elif no_changed_files > 1: #and no_changed_files <= 20 and get_prediction(commit_message):
+                    continue
+                    # commit_info = {
+                    #     'url': repo_url + '/commit/' + commit.hash
+                    # }
+                    # # add this commit info to running list
+                    # commit_data_url.append(commit_info)
+                    # if len(commit_data_url) == data_threshold:
+                    #     batch_id_url += 1
+                    #     #write_commit_data_to_file()
+                    #     write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
         
                     
                 
@@ -613,6 +613,7 @@ def main():
     
     # here we read the .csv file containg this node's split of the repo list to be mined
     input_csv_file = os.path.join(root_dir, f"github_repositories_{host_ip}.csv")
+    #input_csv_file = "filteredpython.csv"
     # create df frame
     df = pd.read_csv(input_csv_file)
     logging.info(f"CSV loaded into df!")
@@ -656,8 +657,8 @@ def main():
                 if fork_status == True:
                     logging.info(f"Forked skipping")
                     continue
-                if int(repo_size) > 2e6:
-                    logging.info(f"LargeFile! Skipping")
+                if int(repo_size) > 3e6:
+                    logging.info(f"LargeRepo! Skipping")
                     continue
             else:
                 # Handle the case where no data was returned
@@ -692,11 +693,11 @@ def main():
         #write_commit_data_to_file()
         write_commit_data_to_file_and_upload(namespace, bucket_name,results_dir)
         #remaining data if any
-    if commit_data_url:
-        logging.info(f"Found remaining {len(commit_data_url)} commit rows")
-        batch_id_url += 1
-        #write_commit_data_to_file()
-        write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
+    # if commit_data_url:
+    #     logging.info(f"Found remaining {len(commit_data_url)} commit rows")
+    #     batch_id_url += 1
+    #     #write_commit_data_to_file()
+    #     write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir)
     time_finish = time.time()
     total_time = time_finish - time_start
     minutes, seconds = divmod(total_time, 60)
@@ -710,8 +711,10 @@ def main():
     logging.info(f"Total >20 changedFile commit curated: {total_found_url}")
     logging.info(f"Total time taken: {int(minutes)}")
     logging.info(f"Total commit: {total_commit}")
+    
+    
     # Command to execute
-    command = 'touch miner_github/analyzer/script_complete.txt'
+    command = 'touch script_complete.txt'
 
     # Execute the command
     result = os.system(command)
