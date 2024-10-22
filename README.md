@@ -10,6 +10,7 @@
 - `python3 task_parallelizer.py repository_lists/filtered_repositories_c.csv ubuntu`  (split task to all node)
 - `parallel-ssh -i -h sshhosts 'chmod +x miner_github/cronjob/add_cron_job.sh'`   
 - `parallel-ssh -i -h sshhosts 'bash miner_github/cronjob/add_cron_job.sh'` (start mining)
+- Run `monitor_logs.py` to restart a node in case the script hangs 
 - `parallel-ssh -i -h sshhosts 'ps aux | grep 'miner_github/analyzer/test_repo_analyzer.py' | grep -v grep'`  (check mining process, start in 5 min)
 
 # Outdated readme 
