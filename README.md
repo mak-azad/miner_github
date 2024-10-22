@@ -9,7 +9,7 @@
 - `parallel-ssh -i -h sshhosts 'bash miner_github/cronjob/add_cron_job.sh'`
 - `parallel-ssh -i -h sshhosts -t 0 'source miniforge3/bin/activate mytoolenv && nohup python3 miner_github/analyzer/test_repo_analyzer.py > /dev/null 2> error_log.txt || echo "Command failed on $(hostname)" >> error_log.txt'`
 - `parallel-ssh -i -h sshhosts 'ps aux | grep 'miner_github/analyzer/test_repo_analyzer.py' | grep -v grep'`
-- `nvidia-smi --query-gpu=name,utilization.gpu,utilization.memory,memory.total,memory.used --format=csv -l 5 > gpu_usage.log`
+- Run `monitor_logs.py` to restart a node in case the script hangs 
 - `parallel-ssh -i -h sshhosts 'pkill -9 -f "miner_github/analyzer/repo_analyzer.py"'`
 ## Collecting data from Ocacle Cloud Object Store Bucket
 - Modify `/home/akazad/dataset/src/downloader_oci_bucket.py` @Lab
