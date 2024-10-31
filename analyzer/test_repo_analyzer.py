@@ -48,13 +48,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 cpu_count = os.cpu_count()
 
 
-## ML Model related ##
-def parse_output(text):
-    res = re.search(r'\b(Yes|No)\b', text)
-    if res:
-        return res.group(0)
-    else:
-        return None
+
 
 def clear_crontab():
     os.system('crontab -r')
@@ -66,35 +60,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load the tokenizer and model only once
 
 tokenizer = AutoTokenizer.from_pretrained("ManojAlexender/second_Base_version_of_codebert_with_commit_and_diff")
-model = AutoModelForSequenceClassification.from_pretrained("ManojAlexender/second_Base_version_of_codebert_with_commit_and_diff")
-# Move model to the chosen device
-model.to(device)
 
 # #### Roberta Ends #####
 
-# #### Mistral #####
-# bnb_config = BitsAndBytesConfig(
-#     load_in_4bit=True, # Enables loading the model in 4-bit precision
-#     bnb_4bit_quant_type="nf4", # Specifies the quantization type
-#     bnb_4bit_use_double_quant=True, # Enables double quantization for better precision
-# )
-# # Loading the tokenizer
-# tokenizer = AutoTokenizer.from_pretrained("/home/ubuntu/Mistral-7B-Instruct-v0.2")
-# # Loading the model with BitsAndBytes configuration, and additional settings from Method-1
-# model = AutoModelForCausalLM.from_pretrained(
-#     "/home/ubuntu/Mistral-7B-Instruct-v0.2",
-#     torch_dtype=torch.float16, # Sets the tensor type to float16 for faster computation
-#     device_map="auto", # Automatically maps the model layers to the available devices
-#     tcudaremote_code=True, # Allows the execution of remote code for custom model configurations
-#     #attn_implementation="flash_attention_2", # Uses a specific attention implementation optimized for performance
-#     quantization_config=bnb_config, # Applies the BitsAndBytes configuration
-# )
-
-
-#### Mistral Ends ####
 
 
 # root for the script
+storage_dir = "/nfs"
 root_dir = "miner_github/analyzer" #for test
 #root_dir = "miner_github/analyzer"
 # Logging configuration
@@ -105,49 +77,8 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctim
 
 logging.info(f"Using device {device}")
 
-# prompt_template = ''' <s> [INST] You are an analytical tool specialized in processing and classifying GitHub Commit message. Your task is to assess developer's intent in a given commit message and categorize it into one of the following predefined categories based on its content:
-                    
-#                     'Yes':  A commit messages that explicitly mentions performance improvement or optimization, specifically in terms of execution time or resource utilization or trade-off between the two. The message should clearly indicate actions that made the code runs faster or  more efficiently, use less memory, or more efficiently utilize system resources. Also, if a commit message describes a change made to address a performance bottleneck, prevent performance degradation, reduce overheads or solve a problem that negatively affects performance. This includes optimizations like replacing inefficient code patterns that are known to kill performance even if the message does not use the words 'improvement' or 'performance' explicitly.
-#                     'No': A commit message that do not pertain to performance enhancements. This includes messages related to code changes for testing, documentation, performance profiling/monitoring/debugging/analysis and bug/error/crash fixes that don't explicitly mention performance improvement of the application itself, code refactoring or feature addition without explicit performance optimization,  and mentions of necessary or speculative or potential performance enhancements without concrete evidence or results. Also, a messages that is irrelevant, unclear, or ambiguous, and those that do not provide enough context to determine their intent.     
-
-#                 If the commit message doesn't fit clearly into any of the above categories, classify it as: 'No'. Additionally, pay close attention to the context in which terms like 'performance', 'improve' or 'improvements' are used. Not all improvements are related to performance—only, classify a message as 'Yes' if it specifically mentions enhancements related to execution time, memory usage, or resource efficiency. Avoid making assumptions based on ambiguous terms. You should have high confidence in classifying a message as 'Yes' based on careful examination of the information provided in the commit message.
-#                 If you encounter a commit message with multiple intentions, where at least one of those intentions includes a performance improvement, classify the entire message as 'Yes'.
-#                 You will only respond with the predefined category. Do not include the word 'Category'. Do not provide explanations or notes.
-                
-#                 Commit message : ```{commit_message}``` [/INST] Model answer:  </s> '''
-
-# use the loaded model to predict classificaiton
-# def get_prediction_mistral(sample_commit_message):
-#     generated_prompt = prompt_template.format(commit_message=sample_commit_message)
-#     inputs = tokenizer.apply_chat_template(
-#         [{'role': 'user', 'content': generated_prompt}],
-#         return_tensors="pt",
-#         truncation=True,
-#         max_length =4097 
-#     ).to(model.device)
-#     outputs = model.generate(inputs, max_new_tokens=5, do_sample=False) # for deterministic output
-#     value = parse_output(tokenizer.decode(outputs[0][len(inputs[0]):], skip_special_tokens=True))
-#     if value == 'Yes':
-#         return True
-#     else:
-#         return False
 
 
-def get_prediction(input_text):
-    """
-    Accepts input_text and predicts 3 classes: LABEL_0, LABEL_1(Perf) or LABEL_2 
-    """
-    # Tokenize the input text
-    inputs = tokenizer(input_text, return_tensors="pt",truncation=True, max_length=512)
-    # Move the input tensors to the same device as the model
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    with torch.no_grad():
-        logits = model(**inputs).logits
-    
-   
-    predicted_class_id = logits.argmax().item()
-    predicted_label = model.config.id2label[predicted_class_id]
-    return predicted_label == 'LABEL_1'
 
 
 def get_ip_from_sshosts(sshosts_path):
@@ -203,17 +134,23 @@ def get_public_ip(sshhosts_path='/users/akazad/miner_github/sshhosts_hostname'):
         logging.error(f"Error fetching public IP: {e}")
         return "ErrorFetchingIP"
 
-def count_tokens_code(code):
-    tokens = nltk.word_tokenize(code)
-    # Filter or process tokens as needed
-    return len(tokens)
+
 
 
 # Create a 'results' directory if it doesn't exist
-results_dir = f'{root_dir}/results'
+results_dir = f'{storage_dir}/results'
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)    
 
+
+# Set up the filename using only the hostname
+out_filename = f"cpp_{hostname}.jsonl"
+out_file_path = os.path.join(results_dir, out_filename)
+
+# Function to write commit_info to file immediately
+def write_commit_info(commit_info, file_path):
+    with open(file_path, 'a') as file:  # Open in append mode
+        file.write(json.dumps(commit_info) + '\n')
 
 def read_repository_urls_from_csv(input_csv_file):
     logging.info(f"Processing input filename: {input_csv_file}")
@@ -224,109 +161,12 @@ def read_repository_urls_from_csv(input_csv_file):
     return list(repo_urls)
 
 
-def write_commit_data_to_file():
-    '''
-    Function to write commit data to a new .jsonl file for each batch, using batch_id
-    '''
-    global commit_data
-    # Generate filename using the batch_id
-    filename = os.path.join(results_dir, f"batch_{batch_id}.jsonl")
-    
-    with open(filename, 'w') as file:  # Write mode
-        for commit_info in commit_data:
-            file.write(json.dumps(commit_info) + '\n')
-    commit_data.clear()  # Clear the list after writing
 
 
 
-## object store code ##
-def get_oci_config():
-    """
-    Load the OCI configuration. Modify this function if you need to load a specific profile.
-    """
-    return oci.config.from_file()
 
 
-oci_config = get_oci_config()  # Load the OCI configuration
 
-def upload_file_to_object_storage(namespace, bucket_name, object_name, file_path, oci_config):
-    """
-    Uploads a file to Oracle Cloud Infrastructure Object Storage using streaming and deletes the file afterwards.
-    """
-    object_storage_client = ObjectStorageClient(oci_config)
-
-    try:
-        with open(file_path, 'rb') as file:
-            object_storage_client.put_object(namespace, bucket_name, object_name, file)
-            logging.info(f"Data upload completed: {object_name}")
-            os.remove(file_path)  # Remove the file after successful upload
-            logging.info(f"Successfully deleted local file: {file_path}")
-    except Exception as e:  # Catch any exception during upload or file handling
-        logging.error(f"Failed to upload file {file_path} due to: {e}")
-
-
-def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
-    """
-    Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
-    """
-    global commit_data
-    global batch_id
-    #hostname = socket.gethostname()
-    # Get the current date and time
-    now = datetime.datetime.now()
-
-    # Format the date and time to include year, month, day, hour, minute, and second
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"perf_cpp_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
-    file_path = os.path.join(results_dir, filename)
-    
-    try:
-        with open(file_path, 'w') as file:
-            for commit_info in commit_data:
-                file.write(json.dumps(commit_info) + '\n')
-        
-        #oci_config = get_oci_config()  # Load the OCI configuration
-        #no need to upload now just keep in the machine
-        #upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
-    except IOError as e:
-        logging.info(f"An error occurred while writing or uploading the file: {e}")
-    finally:
-        commit_data.clear()
-        logging.info(f"PERF{batch_id}: uploading complete!")
-        # garbage collect and emtpy cache
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        gc.collect()
-
-# for nonperf commit data write
-def write_commit_data_to_file_and_upload_url(namespace, bucket_name, results_dir):
-    """
-    Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
-    """
-    global commit_data_url
-    global batch_id_url
-
-    #hostname = socket.gethostname()
-       # Get the current date and time
-    now = datetime.datetime.now()
-
-    # Format the date and time to include year, month, day, hour, minute, and second
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"kotlinPerfURL_{hostname}_batch_{batch_id_url}_{timestamp}.jsonl"
-    file_path = os.path.join(results_dir, filename)
-    
-    try:
-        with open(file_path, 'w') as file:
-            for commit_info in commit_data_url:
-                file.write(json.dumps(commit_info) + '\n')
-        
-        #oci_config = get_oci_config()  # Load the OCI configuration
-        upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
-    except IOError as e:
-        logging.info(f"An error occurred while writing or uploading the file: {e}")
-    finally:
-        commit_data_url.clear()
-        logging.info(f"Perf>20: uploading complete!")
 
 
 ## object store code ends #$
@@ -472,16 +312,17 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                     'func_no_tokens': func_token
                                 }
                                 # add this commit info to running list
-                                commit_data.append(commit_info)
+                                #commit_data.append(commit_info)
+                                write_commit_info(commit_info,out_file_path)
 
                                 total_found += 1
                                 local_commit_counter += 1
                                 logging.info(f"Total perf found: {total_found}")
 
-                                if len(commit_data) == data_threshold:
-                                    batch_id += 1
-                                    #write_commit_data_to_file()
-                                    write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
+                                # if len(commit_data) == data_threshold:
+                                #     batch_id += 1
+                                #     #write_commit_data_to_file()
+                                #     write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
                             # else:
                             #     if 'merge' in commit_message or 'revert' in commit_message:
                             #         logging.info(f"Skipping merge commit: {commit.hash}")
