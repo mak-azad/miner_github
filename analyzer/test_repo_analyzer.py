@@ -136,13 +136,13 @@ def get_public_ip(sshhosts_path='/users/akazad/miner_github/sshhosts_hostname'):
 
 
 # Create a 'results' directory if it doesn't exist
-results_dir = f'{storage_dir}/results_python'
+results_dir = f'{storage_dir}/results_java'
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)    
 
 
 # Set up the filename using only the hostname
-out_filename = f"python_{hostname}.jsonl"
+out_filename = f"java_{hostname}.jsonl"
 out_file_path = os.path.join(results_dir, out_filename)
 
 # Function to write commit_info to file immediately
@@ -170,7 +170,7 @@ def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
 
     # Format the date and time to include year, month, day, hour, minute, and second
     timestamp = now.strftime("%Y%m%d_%H%M%S")
-    filename = f"python_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    filename = f"java_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
     file_path = os.path.join(results_dir, filename)
     
     try:
@@ -214,7 +214,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.py']):
+def mine_repo_commits(repo_url, file_types=['.java']):
     global seen_hashes
     global total_commit
     global batch_id
