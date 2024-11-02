@@ -17,8 +17,6 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig #mistral
 
 import hashlib
-import oci # for oracle object store 
-from oci.object_storage import ObjectStorageClient
 
 
 # Download the necessary NLTK models (run once)
@@ -30,7 +28,7 @@ namespace = 'idqgqghww6tn'
 bucket_name = 'bucket-lang-kotlin-ds'
 
 
-data_threshold = 50
+data_threshold = 500
 commit_data = [] # running commit buffer
 commit_data_url = []
 
@@ -72,7 +70,7 @@ root_dir = "miner_github/analyzer" #for test
 # Logging configuration
 logs_dir = os.path.join(root_dir, "logs") #log directory
 os.makedirs(logs_dir, exist_ok=True)  # Ensure the logs directory exists
-log_file_path = os.path.join(logs_dir, f"log_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+log_file_path = os.path.join(logs_dir, f"log_{hostname}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logging.info(f"Using device {device}")
@@ -138,13 +136,13 @@ def get_public_ip(sshhosts_path='/users/akazad/miner_github/sshhosts_hostname'):
 
 
 # Create a 'results' directory if it doesn't exist
-results_dir = f'{storage_dir}/results'
+results_dir = f'{storage_dir}/results_python'
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)    
 
 
 # Set up the filename using only the hostname
-out_filename = f"cpp_{hostname}.jsonl"
+out_filename = f"python_{hostname}.jsonl"
 out_file_path = os.path.join(results_dir, out_filename)
 
 # Function to write commit_info to file immediately
@@ -160,6 +158,38 @@ def read_repository_urls_from_csv(input_csv_file):
         repo_urls = {row[6] for row in reader}
     return list(repo_urls)
 
+def write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir):
+    """
+    Writes commit data to a .jsonl file, uploads it to OCI Object Storage, and removes the file locally.
+    """
+    global commit_data
+    global batch_id
+    #hostname = socket.gethostname()
+    # Get the current date and time
+    now = datetime.datetime.now()
+
+    # Format the date and time to include year, month, day, hour, minute, and second
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    filename = f"python_{hostname}_batch_{batch_id}_{timestamp}.jsonl"
+    file_path = os.path.join(results_dir, filename)
+    
+    try:
+        with open(file_path, 'w') as file:
+            for commit_info in commit_data:
+                file.write(json.dumps(commit_info) + '\n')
+        
+        #oci_config = get_oci_config()  # Load the OCI configuration
+        #no need to upload now just keep in the machine
+        #upload_file_to_object_storage(namespace, bucket_name, filename, file_path, oci_config)
+    except IOError as e:
+        logging.info(f"An error occurred while writing or uploading the file: {e}")
+    finally:
+        commit_data.clear()
+        logging.info(f"PERF{batch_id}: uploading complete!")
+        # garbage collect and emtpy cache
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
 
 
 
@@ -184,7 +214,7 @@ ticket_re0 = re.compile("Ticket: [^\\n]+", re.I)
 # python ['.py']
 # c/c++ ['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']
 
-def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '.hpp', '.cc', '.c++', '.cxx']):
+def mine_repo_commits(repo_url, file_types=['.py']):
     global seen_hashes
     global total_commit
     global batch_id
@@ -234,7 +264,7 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                     if modified_file.change_type not in ["ADD", "DELETE"]:
                         no_modified_method = len(modified_file.changed_methods)
                         if  no_modified_method == 1:
-                            pred = get_prediction(input_text)
+                            pred = True
                             if pred == True:
                                 if 'merge' in commit_message or 'revert' in commit_message:
                                     logging.info(f"Skipping merge commit: {commit.hash}")
@@ -312,17 +342,17 @@ def mine_repo_commits(repo_url, file_types=['.cu', '.cuh', '.c', '.h', '.cpp', '
                                     'func_no_tokens': func_token
                                 }
                                 # add this commit info to running list
-                                #commit_data.append(commit_info)
-                                write_commit_info(commit_info,out_file_path)
+                                commit_data.append(commit_info)
+                                #write_commit_info(commit_info,out_file_path)
 
                                 total_found += 1
                                 local_commit_counter += 1
                                 logging.info(f"Total perf found: {total_found}")
 
-                                # if len(commit_data) == data_threshold:
-                                #     batch_id += 1
-                                #     #write_commit_data_to_file()
-                                #     write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
+                                if len(commit_data) == data_threshold:
+                                    batch_id += 1
+                                    #write_commit_data_to_file()
+                                    write_commit_data_to_file_and_upload(namespace, bucket_name, results_dir)
                             # else:
                             #     if 'merge' in commit_message or 'revert' in commit_message:
                             #         logging.info(f"Skipping merge commit: {commit.hash}")
